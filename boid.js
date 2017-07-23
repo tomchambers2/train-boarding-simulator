@@ -1,10 +1,18 @@
 'use strict';
 
+const ARRIVAL_DISTANCE = 10;
+const SLOWING_DISTANCE = 50;
+
 class Boid {
-  constructor({ x, y }, { x: targetX, y: targetY }) {
-    console.log(x, y);
+  constructor(id, { x, y }, seats) {
+    this.id = id;
     this.position = new p5.Vector(x, y);
-    this.target = new p5.Vector(targetX, targetY);
+    this.arrived = false;
+
+    this.seat = this.findTarget(seats);
+    // this.seat = seats[0];
+    this.target = new p5.Vector(this.seat.location.x, this.seat.location.y);
+    this.seats = seats;
 
     this.acceleration = new p5.Vector(0, 0);
     this.velocity = new p5.Vector(random(-1, 1), random(-1, 1));
@@ -15,7 +23,29 @@ class Boid {
     this.color = color(random(255));
   }
 
+  findTarget(seats) {
+    const targetIndex = round(random(seats.length - 1));
+    const seat = seats[targetIndex];
+    if (seat.occupied) {
+      if (seats.some(({ occupied }) => !occupied)) {
+        return this.findTarget(seats);
+      }
+
+      this.arrived = true;
+      return { location: { x: width / 2, y: height / 2 } };
+    }
+    return seat;
+  }
+
+  checkTarget() {
+    if (this.seat.occupied && !this.arrived) {
+      this.seat = this.findTarget(this.seats);
+      this.target = new p5.Vector(this.seat.location.x, this.seat.location.y);
+    }
+  }
+
   run(boids) {
+    this.checkTarget();
     this.flock(boids);
     this.applyForce(this.seek(this.target));
     this.update();
@@ -32,20 +62,36 @@ class Boid {
     separation.mult(1.5);
     this.applyForce(separation);
 
-    const alignment = this.align(boids);
-    alignment.mult(1);
+    // const alignment = this.align(boids);
+    // alignment.mult(1);
     // this.applyForce(alignment);
 
-    const cohesion = this.cohesion(boids);
-    cohesion.mult(1);
+    // const cohesion = this.cohesion(boids);
+    // cohesion.mult(1);
     // this.applyForce(cohesion);
   }
 
   update() {
     this.velocity.add(this.acceleration);
     this.velocity.limit(this.maxSpeed);
+    this.velocity = this.arrive(this.velocity);
     this.position.add(this.velocity);
     this.acceleration.mult(0);
+  }
+
+  arrive(velocity) {
+    const desired = p5.Vector.sub(this.target, this.position);
+    const distance = desired.mag();
+    if (distance < SLOWING_DISTANCE) {
+      const mag = map(distance, 0, 100, 0, this.maxSpeed);
+      desired.setMag(mag);
+      if (distance < ARRIVAL_DISTANCE) {
+        this.arrived = true;
+        this.seat.occupied = true;
+      }
+      return desired;
+    }
+    return velocity;
   }
 
   seek(target) {
@@ -62,7 +108,6 @@ class Boid {
     push();
     fill(this.color);
     stroke(0);
-    ellipse(this.target.x, this.target.y, 10);
     translate(this.position.x, this.position.y);
     rotate(theta);
     beginShape(TRIANGLES);
@@ -70,6 +115,10 @@ class Boid {
     vertex(-this.radius, this.radius * 2);
     vertex(this.radius, this.radius * 2);
     endShape();
+    rotate(-theta);
+    textSize(18);
+    fill(0);
+    // text(this.id || '', 0, 0);
     pop();
   }
 
