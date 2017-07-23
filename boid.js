@@ -1,17 +1,23 @@
 'use strict';
 
 class Boid {
-  constructor(x, y) {
+  constructor({ x, y }, { x: targetX, y: targetY }) {
+    console.log(x, y);
     this.position = new p5.Vector(x, y);
+    this.target = new p5.Vector(targetX, targetY);
+
     this.acceleration = new p5.Vector(0, 0);
     this.velocity = new p5.Vector(random(-1, 1), random(-1, 1));
     this.radius = 3;
     this.maxSpeed = 2;
     this.maxForce = 0.2;
+
+    this.color = color(random(255));
   }
 
   run(boids) {
     this.flock(boids);
+    this.applyForce(this.seek(this.target));
     this.update();
     this.borders();
     this.render();
@@ -24,15 +30,15 @@ class Boid {
   flock(boids) {
     const separation = this.separate(boids);
     separation.mult(1.5);
-    this.applyForce(separation);
+    // this.applyForce(separation);
 
     const alignment = this.align(boids);
     alignment.mult(1);
-    this.applyForce(alignment);
+    // this.applyForce(alignment);
 
     const cohesion = this.cohesion(boids);
     cohesion.mult(1);
-    this.applyForce(cohesion);
+    // this.applyForce(cohesion);
   }
 
   update() {
@@ -53,9 +59,10 @@ class Boid {
 
   render() {
     const theta = this.velocity.heading() + radians(90);
-    fill(175);
-    stroke(0);
     push();
+    fill(this.color);
+    stroke(0);
+    ellipse(this.target.x, this.target.y, 10);
     translate(this.position.x, this.position.y);
     rotate(theta);
     beginShape(TRIANGLES);
