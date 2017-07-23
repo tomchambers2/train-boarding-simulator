@@ -30,7 +30,7 @@ class Boid {
   flock(boids) {
     const separation = this.separate(boids);
     separation.mult(1.5);
-    // this.applyForce(separation);
+    this.applyForce(separation);
 
     const alignment = this.align(boids);
     alignment.mult(1);
