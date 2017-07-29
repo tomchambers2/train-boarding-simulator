@@ -2,14 +2,14 @@
 
 class Flock {
   constructor() {
-    this.boids = [];
+    this.agents = [];
   }
   run() {
-    for (const boid of this.boids) {
-      boid.run(this.boids);
+    for (const agent of this.agents) {
+      agent.run(this.agents);
     }
   }
-  add(boid) {
-    this.boids.push(boid);
+  add(agent) {
+    this.agents.push(agent);
   }
 }
