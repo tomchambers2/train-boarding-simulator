@@ -1,6 +1,6 @@
 'use strict';
 
-const SLOWING_DISTANCE = 20;
+const SLOWING_DISTANCE = 10;
 
 class Agent {
   constructor(id, { x, y }, seats) {
@@ -15,7 +15,7 @@ class Agent {
     this.maxSpeed = 2; // 2
     this.maxForce = 0.2; // 0.2
 
-    this.color = color(random(255));
+    this.color = color(random(200, 255));
   }
 
   getCurrentSquare() {
@@ -65,7 +65,7 @@ class Agent {
 
     this.velocity.add(this.acceleration);
     this.velocity.limit(this.maxSpeed);
-    // this.velocity = this.arrive(this.velocity); // couldnt match square, too far away
+    this.velocity = this.arrive(this.velocity); // couldnt match square, too far away
     this.position.add(this.velocity);
     this.acceleration.mult(0);
   }

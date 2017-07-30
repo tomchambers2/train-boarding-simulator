@@ -1,7 +1,30 @@
 'use strict';
 
 const size = 30;
-const walls = [[1, 1], [1, 2]];
+const walls = [
+  [1, 1],
+  [1, 2],
+  [1, 3],
+  [1, 4],
+  [1, 5],
+  [1, 6],
+  [1, 7],
+  [2, 1],
+  [3, 1],
+  [4, 1],
+  [5, 1],
+  [6, 1],
+  [7, 1],
+  [8, 1],
+  [9, 1],
+  [10, 1],
+  [12, 1],
+  [13, 1],
+  [14, 1],
+  [15, 1],
+  [16, 1],
+  [17, 1],
+];
 
 Array.prototype.hasSquare = function([x1, y1]) {
   const present = this.find(([x, y]) => x === x1 && y === y1);
@@ -96,6 +119,7 @@ class Grid {
       }
       const neighbors = this.findRange(currentSquare, 1);
       for (const neighbor of neighbors) {
+        if (this.squares[neighbor[0]][neighbor[1]].occupied) continue;
         this.squares[neighbor[0]][neighbor[1]].searching = true;
         if (closed.hasSquare(neighbor)) continue;
         if (!open.hasSquare(neighbor)) {
