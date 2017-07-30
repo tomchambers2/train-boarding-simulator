@@ -35,7 +35,10 @@ class Grid {
   }
 
   getSquareLocation([x, y]) {
-    return new p5.Vector(x * this.width, y * this.height);
+    return new p5.Vector(
+      x * this.width + this.width / 2,
+      y * this.height + this.height / 2
+    );
   }
 
   findRange([x, y], range) {
@@ -60,8 +63,8 @@ class Grid {
     return squares;
   }
 
-  getVisibleSquares(currentSquare) {
-    return this.findRange(currentSquare, 3);
+  getVisibleSquares(currentSquare, visibilityRange) {
+    return this.findRange(currentSquare, visibilityRange);
   }
 
   findPath(from, to) {
@@ -69,6 +72,7 @@ class Grid {
     const closed = [];
     const cameFrom = {};
     cameFrom[from] = null;
+    const path = [];
 
     while (open.length) {
       // for A* add heuristic here to find next best path
@@ -77,7 +81,7 @@ class Grid {
       closed.push(currentSquare);
       if (closed.hasSquare(to)) {
         let prev = closed.pop();
-        const path = [prev];
+        path.push(prev);
         while (prev !== null) {
           prev = cameFrom[prev];
           path.unshift(prev);
@@ -86,7 +90,7 @@ class Grid {
           if (p === null) {
             continue;
           }
-          this.squares[p[0]][p[1]].occupied = true;
+          this.squares[p[0]][p[1]].path = true;
         }
         break;
       }
@@ -102,6 +106,8 @@ class Grid {
         }
       }
     }
+    path.shift();
+    return path;
   }
 
   // findPath(from, to) {
@@ -152,7 +158,7 @@ class Grid {
     this.squares.forEach((row, i) => {
       row.forEach((square, j) => {
         let color = square.occupied ? 0 : 255;
-        // color = square.searching ? 50 : color;
+        color = square.path ? 20 : color;
         fill(color);
         rect(i * this.height, j * this.width, this.height, this.width);
       });

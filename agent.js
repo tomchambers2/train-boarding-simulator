@@ -1,7 +1,6 @@
 'use strict';
 
-const ARRIVAL_DISTANCE = 10;
-const SLOWING_DISTANCE = 50;
+const SLOWING_DISTANCE = 20;
 
 class Agent {
   constructor(id, { x, y }, seats) {
@@ -13,8 +12,8 @@ class Agent {
     this.acceleration = new p5.Vector(0, 0);
     this.velocity = new p5.Vector(random(-1, 1), random(-1, 1));
     this.radius = 3;
-    this.maxSpeed = 10; // 2
-    this.maxForce = 5; // 0.2
+    this.maxSpeed = 2; // 2
+    this.maxForce = 0.2; // 0.2
 
     this.color = color(random(255));
   }
@@ -29,7 +28,10 @@ class Agent {
     if (!this.targetPath.length) {
       return this.findTarget();
     }
-    if (this.targetPath[0] == this.currentSquare) {
+    if (
+      this.targetPath[0][0] === this.currentSquare[0] &&
+      this.targetPath[0][1] === this.currentSquare[1]
+    ) {
       return this.targetPath.shift();
     }
     this.target = grid.getSquareLocation(this.targetPath[0]);
@@ -46,11 +48,10 @@ class Agent {
 
   findTarget() {
     const scoredSquares = grid
-      .getVisibleSquares(this.currentSquare)
+      .getVisibleSquares(this.currentSquare, 20)
       .map(this.scoreSquare.bind(this))
       .sort((a, b) => b.score - a.score);
-    console.log(scoredSquares[0]);
-    console.log('get path', this.currentSquare, scoredSquares[0].coords);
+
     this.targetPath = grid.findPath(
       this.currentSquare,
       scoredSquares[0].coords
@@ -64,7 +65,7 @@ class Agent {
 
     this.velocity.add(this.acceleration);
     this.velocity.limit(this.maxSpeed);
-    this.velocity = this.arrive(this.velocity);
+    // this.velocity = this.arrive(this.velocity); // couldnt match square, too far away
     this.position.add(this.velocity);
     this.acceleration.mult(0);
   }
