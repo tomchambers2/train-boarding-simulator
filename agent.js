@@ -39,8 +39,23 @@ class Agent {
     return Math.floor(Math.random() * max);
   }
 
+  scoreSquare(square) {
+    // TODO real scoring algorithm considering params of square
+    return { coords: square, score: this.rand(100) };
+  }
+
   findTarget() {
-    this.targetPath = [[this.rand(10), this.rand(10)]];
+    const scoredSquares = grid
+      .getVisibleSquares(this.currentSquare)
+      .map(this.scoreSquare.bind(this))
+      .sort((a, b) => b.score - a.score);
+    console.log(scoredSquares[0]);
+    console.log('get path', this.currentSquare, scoredSquares[0].coords);
+    this.targetPath = grid.findPath(
+      this.currentSquare,
+      scoredSquares[0].coords
+    );
+    // this.targetPath = [[this.rand(10), this.rand(10)]];
   }
 
   update() {
