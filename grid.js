@@ -26,6 +26,8 @@ const walls = [
   [17, 1],
 ];
 
+const seats = [[15, 15]];
+
 Array.prototype.hasSquare = function([x1, y1]) {
   const present = this.find(([x, y]) => x === x1 && y === y1);
   return present;
@@ -42,6 +44,7 @@ class Grid {
     this.squares = this.squares.map((row, i) =>
       row.map((square, j) => ({
         occupied: walls.find(([x, y]) => x === i && y === j) ? true : false,
+        seat: seats.find(([x, y]) => x === i && y === j) ? true : false,
       }))
     );
   }
@@ -95,7 +98,10 @@ class Grid {
       const distance =
         Math.abs(currentSquare[0] - square[0]) +
         Math.abs(currentSquare[1] - square[1]);
-      return { coords: square, distance };
+      const seat = seats.find(([x, y]) => x === square[0] && y === square[1])
+        ? true
+        : false;
+      return { coords: square, distance, seat };
     });
   }
 
@@ -190,9 +196,10 @@ class Grid {
     fill(255);
     this.squares.forEach((row, i) => {
       row.forEach((square, j) => {
-        let color = square.occupied ? 0 : 255;
-        color = square.path ? 20 : color;
-        fill(color);
+        let c = square.occupied ? 0 : 255;
+        c = square.path ? color(255, 0, 0) : c;
+        c = square.seat ? color(0, 255, 0) : c;
+        fill(c);
         rect(i * this.height, j * this.width, this.height, this.width);
       });
     });

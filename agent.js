@@ -43,9 +43,10 @@ class Agent {
   }
 
   scoreSquare(square) {
-    const score = square.distance / this.parameters.disability;
-    console.log(square.distance, score);
-    score += square.isSeat * this.parameters.tiredness;
+    console.log('check', square);
+    // let score = square.distance / this.parameters.disability;
+    // score += square.isSeat * this.parameters.tiredness;
+    square.score = square.seat ? 1 : 0;
     return square;
   }
 
@@ -54,7 +55,7 @@ class Agent {
       .getVisibleSquares(this.currentSquare, 20)
       .map(this.scoreSquare.bind(this))
       .sort((a, b) => b.score - a.score);
-
+    console.log(scoredSquares[0].coords);
     this.targetPath = grid.findPath(
       this.currentSquare,
       scoredSquares[0].coords
