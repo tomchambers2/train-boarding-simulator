@@ -3,7 +3,8 @@
 const SLOWING_DISTANCE = 10;
 
 class Agent {
-  constructor(id, { x, y }, seats) {
+  constructor(id, { x, y }, parameters) {
+    this.parameters = parameters;
     this.id = id;
     this.position = new p5.Vector(x, y);
     this.target = new p5.Vector(0, 0);
@@ -42,8 +43,10 @@ class Agent {
   }
 
   scoreSquare(square) {
-    // TODO real scoring algorithm considering params of square
-    return { coords: square, score: this.rand(100) };
+    const score = square.distance / this.parameters.disability;
+    console.log(square.distance, score);
+    score += square.isSeat * this.parameters.tiredness;
+    return square;
   }
 
   findTarget() {

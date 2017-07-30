@@ -87,7 +87,16 @@ class Grid {
   }
 
   getVisibleSquares(currentSquare, visibilityRange) {
-    return this.findRange(currentSquare, visibilityRange);
+    const squares = this.findRange(currentSquare, visibilityRange);
+    const availableSquares = squares.filter(
+      ([x, y]) => !this.squares[x][y].occupied
+    );
+    return availableSquares.map(square => {
+      const distance =
+        Math.abs(currentSquare[0] - square[0]) +
+        Math.abs(currentSquare[1] - square[1]);
+      return { coords: square, distance };
+    });
   }
 
   findPath(from, to) {

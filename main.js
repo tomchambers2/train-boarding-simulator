@@ -10,7 +10,7 @@ function setup() {
   createCanvas(640, 360);
 
   for (var i = 0; i < numAgents; i++) {
-    flock.add(new Agent(i + 1, { x: 0, y: 0 }));
+    flock.add(new Agent(i + 1, { x: 0, y: 0 }, { disability: 0.1 }));
   }
 }
 
