@@ -13,27 +13,54 @@ class Agent {
     this.acceleration = new p5.Vector(0, 0);
     this.velocity = new p5.Vector(random(-1, 1), random(-1, 1));
     this.radius = 3;
-    this.maxSpeed = 2; // 2
+    this.maxSpeed = random(5, 20); // 2
     this.maxForce = 0.2; // 0.2
 
+    this.arrived = false;
+
     this.color = color(random(200, 255));
+
+    this.capability = Math.random();
+    this.tiredness = Math.random();
+    this.journeyLength = Math.random();
   }
 
   getCurrentSquare() {
     if (this.currentSquare) grid.setSquareState(this.currentSquare, false);
     this.currentSquare = grid.getCurrentLocation(this.position);
-    grid.setSquareState(this.currentSquare, true);
+    grid.setSquareState(this.currentSquare, true, this.id);
   }
 
   move() {
-    if (!this.targetPath.length) {
+    if (!this.targetPath.length && !this.arrived) {
+      return this.findTarget();
+    } else if (!this.targetPath.length) {
+      return;
+    }
+    if (
+      this.targetPath.length &&
+      grid.getSquareInfo(this.targetPath[this.targetPath.length - 1])
+        .occupied &&
+      grid.getSquareInfo(this.targetPath[this.targetPath.length - 1])
+        .occupiedBy !== this.id
+    ) {
+      console.log('BLOCKED FIND NEW');
       return this.findTarget();
     }
     if (
       this.targetPath[0][0] === this.currentSquare[0] &&
       this.targetPath[0][1] === this.currentSquare[1]
     ) {
-      return this.targetPath.shift();
+      // recalc path on each frame
+      // console.log(this.id, 'go to', grid.getSquareLocation(this.target));
+      // this.targetPath = grid.findPath(this.currentSquare, this.target);
+      // return;
+      this.targetPath.shift();
+      if (!this.targetPath.length) {
+        this.arrived = true;
+        console.log('journey over');
+      }
+      return;
     }
     this.target = grid.getSquareLocation(this.targetPath[0]);
   }
@@ -45,8 +72,18 @@ class Agent {
   scoreSquare(square) {
     // let score = square.distance / this.parameters.disability;
     // score += square.isSeat * this.parameters.tiredness;
-    square.score = square.seat ? 1 : 0;
-    square.score = square.standingSpace ? 2 : 0;
+    let score = 0;
+    if (square.seat) score += 2;
+    if (square.standingSpace) score += 1;
+    if (grid.getSquareInfo(this.currentSquare).seat) {
+      if (
+        this.currentSquare[0] === square.coords[0] &&
+        this.currentSquare[1] === square.coords[1]
+      ) {
+      }
+    }
+    if (grid.getSquareInfo(this.currentSquare).seat) score = 0; // if in a seat, higher threshold
+    square.score = score;
     return square;
   }
 

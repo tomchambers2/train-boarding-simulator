@@ -184,8 +184,9 @@ class Grid {
     );
   }
 
-  setSquareState([x, y], state) {
+  setSquareState([x, y], state, agentId) {
     this.squares[x][y].occupied = !!state;
+    this.squares[x][y].occupiedBy = agentId;
   }
 
   setPoint(location, type) {
@@ -201,6 +202,21 @@ class Grid {
   //   this.squares[node[0]][node[1]][type] = true;
   //   console.log(JSON.stringify(walls));
   // }
+
+  getSquareInfo([x1, y1]) {
+    return {
+      occupiedBy: this.squares[x1][y1].occupiedBy,
+      occupied:
+        this.squares[x1][y1].occupied ||
+        walls.find(([x, y]) => x === x1 && y === y1)
+          ? true
+          : false,
+      seat: seats.find(([x, y]) => x === x1 && y === y1) ? true : false,
+      standingSpace: standingSpaces.find(([x, y]) => x === x1 && y === y1)
+        ? true
+        : false,
+    };
+  }
 
   getCurrentLocation(location) {
     return [
@@ -350,10 +366,11 @@ class Grid {
     fill(255);
     this.squares.forEach((row, i) => {
       row.forEach((square, j) => {
-        let c = square.occupied ? 0 : 255;
-        c = square.path ? color(255, 0, 0) : c;
+        let c = 255;
         c = square.seat ? color(0, 255, 0) : c;
         c = square.standingSpace ? color(0, 0, 255) : c;
+        c = square.path ? color(255, 0, 0) : c;
+        c = square.occupied ? 0 : c;
         fill(c);
         rect(i * this.height, j * this.width, this.height, this.width);
       });

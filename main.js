@@ -2,9 +2,7 @@
 
 const flock = new Flock();
 const grid = new Grid();
-const numAgents = 10;
-
-// grid.findPath([10, 5], [25, 15]);
+const numAgents = 2;
 
 function setup() {
   createCanvas(640, 360);
