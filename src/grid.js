@@ -98,38 +98,22 @@ export default class Grid {
     return neighbors;
   }
 
-  // findRange([x, y]: Coords, range: number) {
-  //   var squares = [];
-  //   const rows = this.size,
-  //     cols = this.size;
-  //
-  //   const starty = Math.max(0, y - range);
-  //   const endy = Math.min(rows - 1, y + range);
-  //
-  //   for (let row = starty; row <= endy; row++) {
-  //     const xrange = range - Math.abs(row - y);
-  //
-  //     const startx = Math.max(0, x - xrange);
-  //     const endx = Math.min(cols - 1, x + xrange);
-  //
-  //     for (let col = startx; col <= endx; col++) {
-  //       squares.push([col, row]);
-  //     }
-  //   }
-  //
-  //   return squares;
-  // }
-
   isBlocked(coords: Coords) {
     const square = this.getSquare(coords);
     return square.wall || square.occupied || square.seat;
+  }
+
+  agentsNearSquare(coords: Coords) {
+    return this.findRange(coords, 1).filter(
+      square => this.getSquare(square).occupied
+    ).length;
   }
 
   getAccessibleNeighbors(square: Coords, range: number) {
     const squares = this.findRange(square, range);
     const availableSquares = squares.filter(coords => {
       const testSquare = this.getSquare(coords);
-      return testSquare.seat || testSquare.standing;
+      return (testSquare.seat || testSquare.standing) && !testSquare.occupied;
     });
     return availableSquares;
   }

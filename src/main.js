@@ -9,7 +9,7 @@ import data from './data';
 
 const flock = new Flock();
 const grid = new Grid(data);
-const numAgents = 10;
+const numAgents = 0;
 
 window.setup = () => {
   createCanvas(640, 360);
@@ -26,9 +26,10 @@ window.setup = () => {
   }
 };
 
-function mouseClicked() {
-  grid.setPoint({ x: mouseX, y: mouseY }, 'occupied');
-}
+window.mouseClicked = () => {
+  // grid.setPoint({ x: mouseX, y: mouseY }, 'occupied');
+  flock.add(new Agent(1, { x: mouseX, y: mouseY }, { disability: 0.1 }, grid));
+};
 
 window.draw = () => {
   background(255);

@@ -136,6 +136,11 @@ export default class Agent {
   scoreSquare(coords: Coords) {
     // let score = square.distance / this.parameters.disability;
     // score += square.isSeat * this.parameters.tiredness;
+
+    //how many people are near this seat?
+    const nearby = this.grid.agentsNearSquare(coords);
+    score -= nearby;
+
     let score = 0;
     const square = this.grid.getSquare(coords);
     if (square.seat) score += 2;
