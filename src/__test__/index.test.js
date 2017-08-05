@@ -85,7 +85,7 @@ describe('Grid', () => {
     expect(result).toHaveLength(24);
   });
 
-  it.only('should find all the squares around a square within a radius', () => {
+  it('should find all the squares around a square within a radius', () => {
     const result = grid.findRange([1, 1], 2);
     expect(result).toHaveLength(15);
   });
@@ -93,16 +93,11 @@ describe('Grid', () => {
   it('should find a path from A to B', () => {
     expect(grid.findPath([0, 0], [5, 6])).toEqual([
       [0, 0],
-      [1, 0],
-      [2, 0],
-      [3, 0],
-      [4, 0],
-      [5, 0],
-      [5, 1],
-      [5, 2],
-      [5, 3],
-      [5, 4],
-      [5, 5],
+      [0, 1],
+      [1, 2],
+      [2, 3],
+      [3, 4],
+      [4, 5],
       [5, 6],
     ]);
   });
@@ -135,12 +130,14 @@ describe('Agent', () => {
       getSquare: () => ({
         standing: true,
       }),
+      distanceBetween: () => 1,
+      agentsNearSquare: () => 2,
     };
-    agent = new Agent(1, { x: 50, y: 50 }, {}, grid);
+    agent = new Agent(1, { x: 50, y: 50 }, { capability: 0.5 }, grid);
 
-    expect(agent.scoreSquare([0, 0])).toEqual({
+    expect(agent.scoreSquare([2, 2])([0, 0])).toEqual({
       coords: [0, 0],
-      score: 1,
+      score: -3.5,
     });
   });
 
@@ -151,12 +148,14 @@ describe('Agent', () => {
       getSquare: () => ({
         seat: true,
       }),
+      distanceBetween: () => 1,
+      agentsNearSquare: () => 2,
     };
-    agent = new Agent(1, { x: 50, y: 50 }, {}, grid);
+    agent = new Agent(1, { x: 50, y: 50 }, { capability: 0.5 }, grid);
 
-    expect(agent.scoreSquare([3, 5])).toEqual({
+    expect(agent.scoreSquare([2, 2])([3, 5])).toEqual({
       coords: [3, 5],
-      score: 2,
+      score: -2.5,
     });
   });
 });

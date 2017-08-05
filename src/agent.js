@@ -13,32 +13,28 @@ const random = (min, max) => Math.random() * (max - min) + min;
 import type { Square, Coords, Vector } from './types';
 
 export default class Agent {
-  // parameters: {};
-  // grid: Grid;
-  // id: number;
-  // targetPath: Array<Coords>;
-  // radius: number;
-  // maxSpeed: number;
-  // maxForce: number;
-  // arrived: boolean;
-  // color: number;
-  // capability: number;
-  // tiredness: number;
-  // journeyLength: number;
-  // position: Vector;
-  // target: Vector;
-  // acceleration: Vector;
-  // velocity: Vector;
-  // parameters: {};
-  // currentSquare: Coords;
+  grid: Grid;
+  id: number;
+  targetPath: Array<Coords>;
+  radius: number;
+  maxSpeed: number;
+  maxForce: number;
+  arrived: boolean;
+  color: number;
+  position: Vector;
+  target: Vector;
+  acceleration: Vector;
+  velocity: Vector;
+  parameters: {
+    capability: number,
+  };
+  currentSquare: Coords;
 
   constructor(
     id: number,
     { x, y }: Vector,
     parameters: {
       capability: number,
-      tiredness: number,
-      journeyLength: number,
     },
     grid: Grid
   ) {
@@ -53,8 +49,9 @@ export default class Agent {
     this.acceleration = new p5.Vector(0, 0);
     this.velocity = new p5.Vector(random(-1, 1), random(-1, 1));
     this.radius = 3;
-    this.maxSpeed = random(5, 20); // 2
-    this.maxForce = 1; // 0.2
+    // this.maxSpeed = parameters.capability * 4; // 2
+    this.maxSpeed = 2;
+    this.maxForce = 0.2; // 0.2
 
     this.arrived = false;
 
@@ -137,9 +134,7 @@ export default class Agent {
       const distance = this.grid.distanceBetween(origin, coords);
       score -= distance * (1 - this.parameters.capability);
 
-      //how many people are near this seat?
       const nearby = this.grid.agentsNearSquare(coords);
-      nearby > 0 && console.log('nearby', coords, nearby);
       score -= nearby * 2;
 
       const square = this.grid.getSquare(coords);

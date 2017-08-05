@@ -8,6 +8,11 @@ Array.prototype.hasSquare = function([x1, y1]) {
 import type { Data, Square, Coords } from './types';
 
 export default class Grid {
+  height: number;
+  width: number;
+  size: number;
+  squares: Array<Square>;
+
   constructor(data: Data) {
     this.height = this.width = data.squareDimension;
     this.size = data.size;
@@ -39,7 +44,7 @@ export default class Grid {
     return a[0] === b[0] && a[1] === b[1];
   }
 
-  distanceBetween(a, b) {
+  distanceBetween(a: Coords, b: Coords) {
     return Math.abs(a[0] - b[0]) + Math.abs(a[1] - b[1]);
   }
 
@@ -134,7 +139,7 @@ export default class Grid {
       // const currentSquare = open.sort((a, b) => a.score - b.score).shift();
       const currentSquare = open.shift();
       closed.push(currentSquare);
-      if (closed.hasSquare(to)) {
+      if (closed.some(other => this.coordsMatch(to, other))) {
         let prev = closed.pop();
         path.push(prev);
         while (prev !== null) {
