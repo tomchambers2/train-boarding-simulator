@@ -1,6 +1,4 @@
-'use strict';
-
-class Flock {
+export default class Flock {
   constructor() {
     this.agents = [];
   }

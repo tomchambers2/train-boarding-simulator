@@ -1,14 +1,54 @@
-'use strict';
+// @flow
 
 const SLOWING_DISTANCE = 10;
 
-class Agent {
-  constructor(id, { x, y }, parameters) {
+import p5 from './p5.min.js';
+
+import Grid from './grid';
+
+window.p5 = p5;
+
+const random = (min, max) => Math.random() * (max - min) + min;
+
+import type { Square, Coords, Vector } from './types';
+
+export default class Agent {
+  // parameters: {};
+  // grid: Grid;
+  // id: number;
+  // targetPath: Array<Coords>;
+  // radius: number;
+  // maxSpeed: number;
+  // maxForce: number;
+  // arrived: boolean;
+  // color: number;
+  // capability: number;
+  // tiredness: number;
+  // journeyLength: number;
+  // position: Vector;
+  // target: Vector;
+  // acceleration: Vector;
+  // velocity: Vector;
+  // parameters: {};
+  // currentSquare: Coords;
+
+  constructor(
+    id: number,
+    { x, y }: Vector,
+    parameters: {
+      capability: number,
+      tiredness: number,
+      journeyLength: number,
+    },
+    grid: Grid
+  ) {
     this.parameters = parameters;
     this.id = id;
     this.position = new p5.Vector(x, y);
     this.target = new p5.Vector(0, 0);
     this.targetPath = [];
+    this.grid = grid;
+    this.currentSquare = null;
 
     this.acceleration = new p5.Vector(0, 0);
     this.velocity = new p5.Vector(random(-1, 1), random(-1, 1));
@@ -18,91 +58,25 @@ class Agent {
 
     this.arrived = false;
 
-    this.color = color(random(200, 255));
+    this.color = random(200, 255);
 
     this.capability = Math.random();
     this.tiredness = Math.random();
     this.journeyLength = Math.random();
   }
 
-  getCurrentSquare() {
-    if (this.currentSquare) grid.setSquareState(this.currentSquare, false);
-    this.currentSquare = grid.getCurrentLocation(this.position);
-    grid.setSquareState(this.currentSquare, true, this.id);
+  run(agents: Array<Agent>) {
+    // this.flock(agents);
+    this.moveAgent();
+    this.applyForce(this.seek(this.target));
+    this.updateGridLocation();
+    this.selectTarget();
+
+    this.borders();
+    this.render();
   }
 
-  move() {
-    if (!this.targetPath.length && !this.arrived) {
-      return this.findTarget();
-    } else if (!this.targetPath.length) {
-      return;
-    }
-    if (
-      this.targetPath.length &&
-      grid.getSquareInfo(this.targetPath[this.targetPath.length - 1])
-        .occupied &&
-      grid.getSquareInfo(this.targetPath[this.targetPath.length - 1])
-        .occupiedBy !== this.id
-    ) {
-      console.log('BLOCKED FIND NEW');
-      return this.findTarget();
-    }
-    if (
-      this.targetPath[0][0] === this.currentSquare[0] &&
-      this.targetPath[0][1] === this.currentSquare[1]
-    ) {
-      // recalc path on each frame
-      // console.log(this.id, 'go to', grid.getSquareLocation(this.target));
-      // this.targetPath = grid.findPath(this.currentSquare, this.target);
-      // return;
-      this.targetPath.shift();
-      if (!this.targetPath.length) {
-        this.arrived = true;
-        console.log('journey over');
-      }
-      return;
-    }
-    this.target = grid.getSquareLocation(this.targetPath[0]);
-  }
-
-  rand(max) {
-    return Math.floor(Math.random() * max);
-  }
-
-  scoreSquare(square) {
-    // let score = square.distance / this.parameters.disability;
-    // score += square.isSeat * this.parameters.tiredness;
-    let score = 0;
-    if (square.seat) score += 2;
-    if (square.standingSpace) score += 1;
-    if (grid.getSquareInfo(this.currentSquare).seat) {
-      if (
-        this.currentSquare[0] === square.coords[0] &&
-        this.currentSquare[1] === square.coords[1]
-      ) {
-      }
-    }
-    if (grid.getSquareInfo(this.currentSquare).seat) score = 0; // if in a seat, higher threshold
-    square.score = score;
-    return square;
-  }
-
-  findTarget() {
-    const scoredSquares = grid
-      .getVisibleSquares(this.currentSquare, 20)
-      .map(this.scoreSquare.bind(this))
-      .sort((a, b) => b.score - a.score);
-    this.targetPath = grid.findPath(
-      this.currentSquare,
-      scoredSquares[0].coords
-    );
-    // this.targetPath = [[this.rand(10), this.rand(10)]];
-  }
-
-  update() {
-    this.getCurrentSquare();
-    this.move();
-
+  moveAgent() {
     this.velocity.add(this.acceleration);
     this.velocity.limit(this.maxSpeed);
     this.velocity = this.arrive(this.velocity); // couldnt match square, too far away
@@ -110,19 +84,78 @@ class Agent {
     this.acceleration.mult(0);
   }
 
-  run(agents) {
-    // this.flock(agents);
-    this.applyForce(this.seek(this.target));
-    this.update();
-    this.borders();
-    this.render();
+  unsetOldPosition() {
+    this.grid.updateSquare(this.currentSquare, false, this.id);
   }
 
-  applyForce(force) {
+  updateGridLocation() {
+    if (this.currentSquare) this.unsetOldPosition();
+    this.currentSquare = this.grid.getSquareByPixels([
+      this.position.x,
+      this.position.y,
+    ]);
+    this.grid.updateSquare(this.currentSquare, true, this.id);
+  }
+
+  selectTarget() {
+    // debugger;
+    if (this.arrived) return;
+
+    if (!this.targetPath.length && !this.arrived) {
+      const targetSquare = this.findTargetFrom(this.currentSquare, 5);
+      this.targetPath = this.findTargetPath(this.currentSquare, targetSquare);
+      return;
+    }
+
+    const destination = this.grid.getSquare(
+      this.targetPath[this.targetPath.length - 1]
+    );
+    if (destination.occupied && destination.occupier !== this.id) {
+      this.targetPath = [];
+      return;
+    }
+
+    if (this.grid.coordsMatch(this.targetPath[0], this.currentSquare)) {
+      this.targetPath.shift();
+      if (!this.targetPath.length) this.arrived = true;
+      return;
+    }
+
+    this.target = this.grid.getSquareLocation(this.targetPath[0]);
+  }
+
+  rand(max: number) {
+    return Math.floor(Math.random() * max);
+  }
+
+  scoreSquare(coords: Coords) {
+    // let score = square.distance / this.parameters.disability;
+    // score += square.isSeat * this.parameters.tiredness;
+    let score = 0;
+    const square = this.grid.getSquare(coords);
+    if (square.seat) score += 2;
+    if (square.standing) score += 1;
+    // if (this.grid.getSquare(this.currentSquare).seat) score = 0; // if in a seat, higher threshold
+    // console.log(score);
+    return { coords, score };
+  }
+
+  findTargetFrom(from: Coords, range: number) {
+    return this.grid
+      .getAccessibleNeighbors(from, range)
+      .map(this.scoreSquare.bind(this))
+      .sort((a, b) => b.score - a.score)[0].coords;
+  }
+
+  findTargetPath(from: Coords, to: Coords) {
+    return this.grid.findPath(from, to);
+  }
+
+  applyForce(force: Vector) {
     this.acceleration.add(force);
   }
 
-  seek(target) {
+  seek(target: Coords) {
     const desired = p5.Vector.sub(target, this.position);
     desired.normalize();
     desired.mult(this.maxSpeed);
@@ -131,7 +164,7 @@ class Agent {
     return steer;
   }
 
-  arrive(velocity) {
+  arrive(velocity: Vector) {
     const desired = p5.Vector.sub(this.target, this.position);
     const distance = desired.mag();
     if (distance < SLOWING_DISTANCE) {
@@ -142,15 +175,13 @@ class Agent {
     return velocity;
   }
 
-  flock(agents) {
-    const separation = this.separate(agents);
-    separation.mult(1.5);
-    this.applyForce(separation);
-
+  flock(agents: Array<Agent>) {
+    // const separation = this.separate(agents);
+    // separation.mult(1.5);
+    // this.applyForce(separation);
     // const alignment = this.align(agents);
     // alignment.mult(1);
     // this.applyForce(alignment);
-
     // const cohesion = this.cohesion(agents);
     // cohesion.mult(1);
     // this.applyForce(cohesion);
@@ -166,7 +197,7 @@ class Agent {
   render() {
     const theta = this.velocity.heading() + radians(90);
     push();
-    fill(this.color);
+    fill(color(this.color));
     stroke(0);
     translate(this.position.x, this.position.y);
     rotate(theta);
