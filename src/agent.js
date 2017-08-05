@@ -5,12 +5,13 @@ const SLOWING_DISTANCE = 10;
 import p5 from './p5.min.js';
 
 import Grid from './grid';
+import Vector from './vector';
 
 window.p5 = p5;
 
 const random = (min, max) => Math.random() * (max - min) + min;
 
-import type { Square, Coords, Vector } from './types';
+import type { Square, Coords } from './types';
 
 export default class Agent {
   grid: Grid;
@@ -40,14 +41,14 @@ export default class Agent {
   ) {
     this.parameters = parameters;
     this.id = id;
-    this.position = new p5.Vector(x, y);
-    this.target = new p5.Vector(0, 0);
+    this.position = new Vector(x, y);
+    this.target = new Vector(0, 0);
     this.targetPath = [];
     this.grid = grid;
     this.currentSquare = null;
 
-    this.acceleration = new p5.Vector(0, 0);
-    this.velocity = new p5.Vector(random(-1, 1), random(-1, 1));
+    this.acceleration = new Vector(0, 0);
+    this.velocity = new Vector(random(-1, 1), random(-1, 1));
     this.radius = 3;
     // this.maxSpeed = parameters.capability * 4; // 2
     this.maxSpeed = 2;
@@ -163,16 +164,16 @@ export default class Agent {
   }
 
   seek(target: Coords) {
-    const desired = p5.Vector.sub(target, this.position);
+    const desired = Vector.sub(target, this.position);
     desired.normalize();
     desired.mult(this.maxSpeed);
-    const steer = p5.Vector.sub(desired, this.velocity);
+    const steer = Vector.sub(desired, this.velocity);
     steer.limit(this.maxForce);
     return steer;
   }
 
   arrive(velocity: Vector) {
-    const desired = p5.Vector.sub(this.target, this.position);
+    const desired = Vector.sub(this.target, this.position);
     const distance = desired.mag();
     if (distance < SLOWING_DISTANCE) {
       const mag = map(distance, 0, 100, 0, this.maxSpeed);
@@ -221,12 +222,12 @@ export default class Agent {
 
   // separate(agents) {
   //   const desiredSeparation = 25;
-  //   const steer = new p5.Vector(0, 0, 0);
+  //   const steer = new Vector(0, 0, 0);
   //   let count = 0;
   //   for (const other of agents) {
-  //     const distance = p5.Vector.dist(this.position, other.position);
+  //     const distance = Vector.dist(this.position, other.position);
   //     if (distance > 0 && distance < desiredSeparation) {
-  //       const diff = p5.Vector.sub(this.position, other.position);
+  //       const diff = Vector.sub(this.position, other.position);
   //       diff.normalize();
   //       diff.div(distance);
   //       steer.add(diff);
@@ -247,10 +248,10 @@ export default class Agent {
   //
   // align(agents) {
   //   const neighborDist = 50;
-  //   const sum = new p5.Vector(0, 0);
+  //   const sum = new Vector(0, 0);
   //   let count = 0;
   //   for (const other of agents) {
-  //     const distance = p5.Vector.dist(this.position, other.position);
+  //     const distance = Vector.dist(this.position, other.position);
   //     if (distance > 0 && distance < neighborDist) {
   //       sum.add(other.velocity);
   //       count++;
@@ -260,20 +261,20 @@ export default class Agent {
   //     sum.div(count);
   //     sum.normalize();
   //     sum.mult(this.maxSpeed);
-  //     const steer = p5.Vector.sub(sum, this.velocity);
+  //     const steer = Vector.sub(sum, this.velocity);
   //     steer.limit(this.maxForce);
   //     return steer;
   //   } else {
-  //     return new p5.Vector(0, 0);
+  //     return new Vector(0, 0);
   //   }
   // }
   //
   // cohesion(agents) {
   //   const neighborDist = 50;
-  //   const sum = new p5.Vector(0, 0);
+  //   const sum = new Vector(0, 0);
   //   let count = 0;
   //   for (const other of agents) {
-  //     const distance = p5.Vector.dist(this.position, other.position);
+  //     const distance = Vector.dist(this.position, other.position);
   //     if (distance > 0 && distance < neighborDist) {
   //       sum.add(other.position);
   //       count++;
@@ -283,7 +284,7 @@ export default class Agent {
   //     sum.div(count);
   //     return this.seek(sum);
   //   } else {
-  //     return new p5.Vector(0, 0);
+  //     return new Vector(0, 0);
   //   }
   // }
 }

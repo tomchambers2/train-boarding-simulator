@@ -1,21 +1,22 @@
 // @flow
 
-Array.prototype.hasSquare = function([x1, y1]) {
-  const present = this.find(([x, y]) => x === x1 && y === y1);
-  return present;
-};
-
 import type { Data, Square, Coords } from './types';
+
+import Vector from './vector';
 
 export default class Grid {
   height: number;
   width: number;
   size: number;
   squares: Array<Square>;
+  added: Array<Coords>;
+  debug: boolean;
 
   constructor(data: Data) {
     this.height = this.width = data.squareDimension;
     this.size = data.size;
+    this.debug = data.debug;
+
     const squareTemplate = {
       wall: false,
       seat: false,
@@ -62,12 +63,13 @@ export default class Grid {
     this.squares[x][y].occupier = agentId;
   }
 
-  // setPoint(location, type) {
-  //   const node = this.getCurrentLocation(location);
-  //   data.standingSpaces.push(node);
-  //   this.squares[node[0]][node[1]]['standingSpace'] = true;
-  //   console.log(JSON.stringify(data.standingSpaces));
-  // }
+  setFeature(type: string, location: Coords) {
+    const square = this.getSquareByPixels(location);
+    this.squares[square[0]][square[1]][type] = true;
+    this.added = this.added || [];
+    this.added.push(square);
+    console.log(JSON.stringify(this.added));
+  }
 
   getSquareByPixels([x, y]: Coords) {
     return [
@@ -77,7 +79,7 @@ export default class Grid {
   }
 
   getSquareLocation([x, y]: Coords) {
-    return new p5.Vector(
+    return new Vector(
       x * this.width + this.width / 2,
       y * this.height + this.height / 2
     );
@@ -135,7 +137,7 @@ export default class Grid {
     const path = [];
 
     while (open.length) {
-      // for A* add heuristic here to find next best path
+      // TODO A* - add heuristic here to find next best path
       // const currentSquare = open.sort((a, b) => a.score - b.score).shift();
       const currentSquare = open.shift();
       closed.push(currentSquare);
@@ -143,7 +145,7 @@ export default class Grid {
         let prev = closed.pop();
         path.push(prev);
         while (prev !== null) {
-          prev = cameFrom[prev];
+          prev = cameFrom[prev.join()];
           path.unshift(prev);
         }
         for (const p of path) {
@@ -159,12 +161,12 @@ export default class Grid {
         if (this.isBlocked(neighbor) && !this.coordsMatch(neighbor, to))
           continue;
         this.squares[neighbor[0]][neighbor[1]].searching = true;
-        if (closed.hasSquare(neighbor)) continue;
-        if (!open.hasSquare(neighbor)) {
+        if (closed.some(other => this.coordsMatch(neighbor, other))) continue;
+        if (!open.some(other => this.coordsMatch(neighbor, other))) {
           open.push(neighbor);
-          cameFrom[neighbor] = currentSquare;
+          cameFrom[neighbor.join()] = currentSquare;
         } else {
-          // test score to see if better than parent
+          // TODO A* - test score to see if better than parent
         }
       }
     }
@@ -176,21 +178,16 @@ export default class Grid {
     fill(255);
     this.squares.forEach((row, i) => {
       row.forEach((square, j) => {
-        push();
         let c = 255;
         c = square.wall ? color(0, 0, 0) : c;
         c = square.seat ? color(0, 255, 0) : c;
         c = square.standing ? color(0, 0, 255) : c;
-        c = square.path ? color(255, 0, 0) : c;
-        c = square.occupied ? 0 : c;
+        c = square.path && this.debug ? color(255, 0, 0) : c;
+        c = square.occupied && this.debug ? 0 : c;
         fill(c);
+        const s = this.debug ? 0 : 255;
+        stroke(s);
         rect(i * this.height, j * this.width, this.height, this.width);
-        translate(i * this.height, j * this.width);
-        textSize(8);
-        fill(0);
-        textAlign(BOTTOM);
-        text('' + i + ',' + j, 0, this.height);
-        pop();
       });
     });
   }

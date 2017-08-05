@@ -27,8 +27,13 @@ window.setup = () => {
 };
 
 window.mouseClicked = () => {
-  // grid.setPoint({ x: mouseX, y: mouseY }, 'occupied');
-  flock.add(new Agent(1, { x: mouseX, y: mouseY }, { disability: 0.1 }, grid));
+  if (keyCode === SHIFT) {
+    grid.setFeature(window.type || 'wall', [mouseX, mouseY]);
+  } else {
+    flock.add(
+      new Agent(1, { x: mouseX, y: mouseY }, { disability: 0.1 }, grid)
+    );
+  }
 };
 
 window.draw = () => {
