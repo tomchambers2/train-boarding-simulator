@@ -19,7 +19,7 @@ window.setup = () => {
       new Agent(
         i + 1,
         grid.getSquareLocation([16, 11]),
-        { disability: 0.1 },
+        { capability: Math.random() },
         grid
       )
     );

@@ -59,6 +59,10 @@ describe('Grid', () => {
     expect(grid.getSquareByPixels([54, 67])).toEqual([5, 6]);
   });
 
+  it('should calculate the manhattan distance between two squares', () => {
+    expect(grid.distanceBetween([1, 1], [4, 4])).toBe(6);
+  });
+
   it('should find all the squares around a square within a radius', () => {
     const result = grid.findRange([3, 3], 1);
     expect(result).toHaveLength(8);
@@ -76,7 +80,7 @@ describe('Grid', () => {
     );
   });
 
-  it.only('should find all the squares around a square within a radius', () => {
+  it('should find all the squares around a square within a radius', () => {
     const result = grid.findRange([3, 3], 2);
     expect(result).toHaveLength(24);
   });

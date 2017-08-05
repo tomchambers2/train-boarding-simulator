@@ -54,15 +54,11 @@ export default class Agent {
     this.velocity = new p5.Vector(random(-1, 1), random(-1, 1));
     this.radius = 3;
     this.maxSpeed = random(5, 20); // 2
-    this.maxForce = 0.2; // 0.2
+    this.maxForce = 1; // 0.2
 
     this.arrived = false;
 
     this.color = random(200, 255);
-
-    this.capability = Math.random();
-    this.tiredness = Math.random();
-    this.journeyLength = Math.random();
   }
 
   log(msg: string) {
@@ -103,11 +99,11 @@ export default class Agent {
   }
 
   selectTarget() {
-    // debugger;
     if (this.arrived) return;
 
     if (!this.targetPath.length && !this.arrived) {
       const targetSquare = this.findTargetFrom(this.currentSquare, 5);
+      if (!targetSquare) return;
       this.targetPath = this.findTargetPath(this.currentSquare, targetSquare);
       return;
     }
@@ -133,28 +129,34 @@ export default class Agent {
     return Math.floor(Math.random() * max);
   }
 
-  scoreSquare(coords: Coords) {
-    // let score = square.distance / this.parameters.disability;
-    // score += square.isSeat * this.parameters.tiredness;
+  scoreSquare(origin: Coords) {
+    return (coords: Coords) => {
+      let score = 0;
+      // let score = square.distance / this.parameters.disability;
+      // score += square.isSeat * this.parameters.tiredness;
+      const distance = this.grid.distanceBetween(origin, coords);
+      score -= distance * (1 - this.parameters.capability);
 
-    //how many people are near this seat?
-    const nearby = this.grid.agentsNearSquare(coords);
-    score -= nearby;
+      //how many people are near this seat?
+      const nearby = this.grid.agentsNearSquare(coords);
+      nearby > 0 && console.log('nearby', coords, nearby);
+      score -= nearby * 2;
 
-    let score = 0;
-    const square = this.grid.getSquare(coords);
-    if (square.seat) score += 2;
-    if (square.standing) score += 1;
-    // if (this.grid.getSquare(this.currentSquare).seat) score = 0; // if in a seat, higher threshold
-    // console.log(score);
-    return { coords, score };
+      const square = this.grid.getSquare(coords);
+      if (square.seat) score += 2;
+      if (square.standing) score += 1;
+      // if (this.grid.getSquare(this.currentSquare).seat) score = 0; // if in a seat, higher threshold
+      // console.log(score);
+      return { coords, score };
+    };
   }
 
   findTargetFrom(from: Coords, range: number) {
-    return this.grid
+    const destination = this.grid
       .getAccessibleNeighbors(from, range)
-      .map(this.scoreSquare.bind(this))
-      .sort((a, b) => b.score - a.score)[0].coords;
+      .map(this.scoreSquare.bind(this)(from))
+      .sort((a, b) => b.score - a.score)[0];
+    return (destination && destination.coords) || null;
   }
 
   findTargetPath(from: Coords, to: Coords) {

@@ -39,6 +39,10 @@ export default class Grid {
     return a[0] === b[0] && a[1] === b[1];
   }
 
+  distanceBetween(a, b) {
+    return Math.abs(a[0] - b[0]) + Math.abs(a[1] - b[1]);
+  }
+
   getSquare([x, y]: Coords): Square {
     return { ...this.squares[x][y] };
   }
@@ -167,6 +171,7 @@ export default class Grid {
     fill(255);
     this.squares.forEach((row, i) => {
       row.forEach((square, j) => {
+        push();
         let c = 255;
         c = square.wall ? color(0, 0, 0) : c;
         c = square.seat ? color(0, 255, 0) : c;
@@ -175,6 +180,12 @@ export default class Grid {
         c = square.occupied ? 0 : c;
         fill(c);
         rect(i * this.height, j * this.width, this.height, this.width);
+        translate(i * this.height, j * this.width);
+        textSize(8);
+        fill(0);
+        textAlign(BOTTOM);
+        text('' + i + ',' + j, 0, this.height);
+        pop();
       });
     });
   }

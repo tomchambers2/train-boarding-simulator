@@ -1,5 +1,5 @@
 export default {
-  squareDimension: 10,
+  squareDimension: 20,
   size: 30,
   walls: [
     [9, 2],
