@@ -60,12 +60,30 @@ describe('Grid', () => {
   });
 
   it('should find all the squares around a square within a radius', () => {
-    expect(grid.getAccessibleNeighbors([3, 3], 1)).toEqual([
-      [3, 2],
-      [2, 3],
-      [3, 3],
-      [3, 4],
-    ]);
+    const result = grid.findRange([3, 3], 1);
+    expect(result).toHaveLength(8);
+    expect(result).toEqual(
+      expect.arrayContaining([
+        expect.arrayContaining([2, 2]),
+        expect.arrayContaining([3, 2]),
+        expect.arrayContaining([2, 3]),
+        expect.arrayContaining([3, 3]),
+        expect.arrayContaining([3, 4]),
+        expect.arrayContaining([4, 2]),
+        expect.arrayContaining([4, 3]),
+        expect.arrayContaining([4, 4]),
+      ])
+    );
+  });
+
+  it.only('should find all the squares around a square within a radius', () => {
+    const result = grid.findRange([3, 3], 2);
+    expect(result).toHaveLength(24);
+  });
+
+  it.only('should find all the squares around a square within a radius', () => {
+    const result = grid.findRange([1, 1], 2);
+    expect(result).toHaveLength(15);
   });
 
   it('should find a path from A to B', () => {
@@ -122,10 +140,8 @@ describe('Agent', () => {
     });
   });
 
-  it('should find a target based on scoring', () {
-    // grid.getAccessibleNeighbors = 
-    expect(findTargetFrom([0,0], 2)).toEqual()
-  })
+  it('should find a target based on scoring');
+
   it('should score a square by internal rubric', () => {
     grid = {
       getSquare: () => ({

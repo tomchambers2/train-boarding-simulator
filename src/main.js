@@ -9,7 +9,7 @@ import data from './data';
 
 const flock = new Flock();
 const grid = new Grid(data);
-const numAgents = 20;
+const numAgents = 10;
 
 window.setup = () => {
   createCanvas(640, 360);

@@ -74,27 +74,51 @@ export default class Grid {
     );
   }
 
-  findRange([x, y]: Coords, range: number) {
-    var squares = [];
-    const rows = this.size,
-      cols = this.size;
-
-    const starty = Math.max(0, y - range);
-    const endy = Math.min(rows - 1, y + range);
-
-    for (let row = starty; row <= endy; row++) {
-      const xrange = range - Math.abs(row - y);
-
-      const startx = Math.max(0, x - xrange);
-      const endx = Math.min(cols - 1, x + xrange);
-
-      for (let col = startx; col <= endx; col++) {
-        squares.push([col, row]);
+  findRange([i, j]: Coords, range: number) {
+    const neighbors = [];
+    const row_limit = this.squares.length - 1;
+    if (row_limit > 0) {
+      const column_limit = this.squares[0].length - 1;
+      for (
+        let x = Math.max(0, i - range);
+        x <= Math.min(i + range, row_limit);
+        x++
+      ) {
+        for (
+          let y = Math.max(0, j - range);
+          y <= Math.min(j + range, column_limit);
+          y++
+        ) {
+          if (x != i || y != j) {
+            neighbors.push([x, y]);
+          }
+        }
       }
     }
-
-    return squares;
+    return neighbors;
   }
+
+  // findRange([x, y]: Coords, range: number) {
+  //   var squares = [];
+  //   const rows = this.size,
+  //     cols = this.size;
+  //
+  //   const starty = Math.max(0, y - range);
+  //   const endy = Math.min(rows - 1, y + range);
+  //
+  //   for (let row = starty; row <= endy; row++) {
+  //     const xrange = range - Math.abs(row - y);
+  //
+  //     const startx = Math.max(0, x - xrange);
+  //     const endx = Math.min(cols - 1, x + xrange);
+  //
+  //     for (let col = startx; col <= endx; col++) {
+  //       squares.push([col, row]);
+  //     }
+  //   }
+  //
+  //   return squares;
+  // }
 
   isBlocked(coords: Coords) {
     const square = this.getSquare(coords);
