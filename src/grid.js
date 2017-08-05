@@ -96,13 +96,16 @@ export default class Grid {
     return squares;
   }
 
+  isBlocked(coords: Coords) {
+    const square = this.getSquare(coords);
+    return square.wall || square.occupied || square.seat;
+  }
+
   getAccessibleNeighbors(square: Coords, range: number) {
     const squares = this.findRange(square, range);
     const availableSquares = squares.filter(coords => {
-      return (
-        !this.getSquare(coords).wall && !this.getSquare(coords).occupied
-        // !this.getSquare(coords).seat
-      );
+      const testSquare = this.getSquare(coords);
+      return testSquare.seat || testSquare.standing;
     });
     return availableSquares;
   }
@@ -136,7 +139,8 @@ export default class Grid {
       }
       const neighbors = this.findRange(currentSquare, 1);
       for (const neighbor of neighbors) {
-        if (this.squares[neighbor[0]][neighbor[1]].occupied) continue;
+        if (this.isBlocked(neighbor) && !this.coordsMatch(neighbor, to))
+          continue;
         this.squares[neighbor[0]][neighbor[1]].searching = true;
         if (closed.hasSquare(neighbor)) continue;
         if (!open.hasSquare(neighbor)) {

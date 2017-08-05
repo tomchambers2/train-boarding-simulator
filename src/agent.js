@@ -65,6 +65,11 @@ export default class Agent {
     this.journeyLength = Math.random();
   }
 
+  log(msg: string) {
+    if (this.id !== 1) return;
+    console.log(msg, 'background: #222; color: #bada55');
+  }
+
   run(agents: Array<Agent>) {
     // this.flock(agents);
     this.moveAgent();
