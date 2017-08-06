@@ -2,6 +2,8 @@ export default {
   debug: false,
   squareDimension: 10,
   size: 30,
+  canvasWidth: 300,
+  canvasHeight: 300,
   walls: [
     [9, 2],
     [5, 2],

@@ -4,8 +4,11 @@ const SLOWING_DISTANCE = 10;
 
 import p5 from './p5.min.js';
 
+import * as PIXI from 'pixi.js';
+
 import Grid from './grid';
 import Vector from './vector';
+import data from './data';
 
 window.p5 = p5;
 
@@ -30,6 +33,8 @@ export default class Agent {
     capability: number,
   };
   currentSquare: Coords;
+  canvasWidth: number;
+  canvasHeight: number;
 
   constructor(
     id: number,
@@ -37,7 +42,8 @@ export default class Agent {
     parameters: {
       capability: number,
     },
-    grid: Grid
+    grid: Grid,
+    stage
   ) {
     this.parameters = parameters;
     this.id = id;
@@ -46,6 +52,8 @@ export default class Agent {
     this.targetPath = [];
     this.grid = grid;
     this.currentSquare = null;
+    this.canvasWidth = data.canvasWidth;
+    this.canvasHeight = data.canvasHeight;
 
     this.acceleration = new Vector(0, 0);
     this.velocity = new Vector(random(-1, 1), random(-1, 1));
@@ -57,6 +65,15 @@ export default class Agent {
     this.arrived = false;
 
     this.color = random(200, 255);
+
+    this.rectangle = new PIXI.Graphics();
+    this.rectangle.lineStyle(4, 0xff3300, 1);
+    this.rectangle.beginFill(0x66ccff);
+    this.rectangle.drawRect(0, 0, this.radius, this.radius);
+    this.rectangle.endFill();
+    this.rectangle.x = this.position.x;
+    this.rectangle.y = this.position.y;
+    stage.addChild(this.rectangle);
   }
 
   log(msg: string) {
@@ -172,11 +189,15 @@ export default class Agent {
     return steer;
   }
 
+  map(n: number, start1: number, stop1: number, start2: number, stop2: number) {
+    return (n - start1) / (stop1 - start1) * (stop2 - start2) + start2;
+  }
+
   arrive(velocity: Vector) {
     const desired = Vector.sub(this.target, this.position);
     const distance = desired.mag();
     if (distance < SLOWING_DISTANCE) {
-      const mag = map(distance, 0, 100, 0, this.maxSpeed);
+      const mag = this.map(distance, 0, 100, 0, this.maxSpeed);
       desired.setMag(mag);
       return desired;
     }
@@ -196,28 +217,34 @@ export default class Agent {
   }
 
   borders() {
-    if (this.position.x < -this.radius) this.position.x = width + this.radius;
-    if (this.position.y < -this.radius) this.position.y = height + this.radius;
-    if (this.position.x > width + this.radius) this.position.x = -this.radius;
-    if (this.position.y > height + this.radius) this.position.y = -this.radius;
+    if (this.position.x < -this.radius)
+      this.position.x = this.canvasWidth + this.radius;
+    if (this.position.y < -this.radius)
+      this.position.y = this.canvasHeight + this.radius;
+    if (this.position.x > this.canvasWidth + this.radius)
+      this.position.x = -this.radius;
+    if (this.position.y > this.canvasHeight + this.radius)
+      this.position.y = -this.radius;
   }
 
   render() {
-    const theta = this.velocity.heading() + radians(90);
-    push();
-    fill(color(this.color));
-    stroke(0);
-    translate(this.position.x, this.position.y);
-    rotate(theta);
-    beginShape(TRIANGLES);
-    vertex(0, -this.radius * 2);
-    vertex(-this.radius, this.radius * 2);
-    vertex(this.radius, this.radius * 2);
-    endShape();
-    rotate(-theta);
-    textSize(18);
-    fill(0);
-    pop();
+    // const theta = this.velocity.heading() + radians(90);
+    this.rectangle.x = this.position.x;
+    this.rectangle.y = this.position.y;
+    // push();
+    // fill(color(this.color));
+    // stroke(0);
+    // translate(this.position.x, this.position.y);
+    // rotate(theta);
+    // beginShape(TRIANGLES);
+    // vertex(0, -this.radius * 2);
+    // vertex(-this.radius, this.radius * 2);
+    // vertex(this.radius, this.radius * 2);
+    // endShape();
+    // rotate(-theta);
+    // textSize(18);
+    // fill(0);
+    // pop();
   }
 
   // separate(agents) {

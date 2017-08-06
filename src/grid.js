@@ -1,4 +1,5 @@
 // @flow
+import * as PIXI from 'pixi.js';
 
 import type { Data, Square, Coords } from './types';
 
@@ -12,7 +13,7 @@ export default class Grid {
   added: Array<Coords>;
   debug: boolean;
 
-  constructor(data: Data) {
+  constructor(data: Data, stage) {
     this.height = this.width = data.squareDimension;
     this.size = data.size;
     this.debug = data.debug;
@@ -174,20 +175,47 @@ export default class Grid {
     return path;
   }
 
-  draw() {
-    fill(255);
+  create(stage) {
     this.squares.forEach((row, i) => {
       row.forEach((square, j) => {
-        let c = 255;
-        c = square.wall ? color(0, 0, 0) : c;
-        c = square.seat ? color(0, 255, 0) : c;
-        c = square.standing ? color(0, 0, 255) : c;
-        c = square.path && this.debug ? color(255, 0, 0) : c;
-        c = square.occupied && this.debug ? 0 : c;
-        fill(c);
-        const s = this.debug ? 0 : 255;
-        stroke(s);
-        rect(i * this.height, j * this.width, this.height, this.width);
+        let c = 0xffffff;
+        c = square.wall ? 0x000000 : c;
+        c = square.seat ? 0x00ff00 : c;
+        c = square.standing ? 0x0000ff : c;
+        c = square.path && this.debug ? 0xff0000 : c;
+        c = square.occupied && this.debug ? 0x000000 : c;
+
+        const rectangle = new PIXI.Graphics();
+        rectangle.lineStyle(0.5, 0x000000, 1);
+        rectangle.beginFill(c);
+        rectangle.drawRect(0, 0, this.height, this.width);
+        rectangle.endFill();
+        rectangle.x = i * this.height;
+        rectangle.y = j * this.width;
+        stage.addChild(rectangle);
+
+        // fill(c);
+        // const s = this.debug ? 0 : 255;
+        // stroke(s);
+        // rect(i * this.height, j * this.width, this.height, this.width);
+      });
+    });
+  }
+
+  draw(stage) {
+    // fill(255);
+    this.squares.forEach((row, i) => {
+      row.forEach((square, j) => {
+        // let c = 255;
+        // c = square.wall ? color(0, 0, 0) : c;
+        // c = square.seat ? color(0, 255, 0) : c;
+        // c = square.standing ? color(0, 0, 255) : c;
+        // c = square.path && this.debug ? color(255, 0, 0) : c;
+        // c = square.occupied && this.debug ? 0 : c;
+        // fill(c);
+        // const s = this.debug ? 0 : 255;
+        // stroke(s);
+        // rect(i * this.height, j * this.width, this.height, this.width);
       });
     });
   }
