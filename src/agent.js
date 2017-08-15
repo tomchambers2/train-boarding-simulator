@@ -2,15 +2,11 @@
 
 const SLOWING_DISTANCE = 10;
 
-import p5 from './p5.min.js';
-
 import * as PIXI from 'pixi.js';
 
 import Grid from './grid';
 import Vector from './vector';
 import data from './data';
-
-window.p5 = p5;
 
 const random = (min, max) => Math.random() * (max - min) + min;
 
@@ -45,6 +41,10 @@ export default class Agent {
     grid: Grid,
     stage
   ) {
+    if (!parameters || !parameters.capability) {
+      throw new Error('Must have capability parameter');
+    }
+
     this.parameters = parameters;
     this.id = id;
     this.position = new Vector(x, y);
@@ -62,8 +62,14 @@ export default class Agent {
     this.maxSpeed = 2;
     this.maxForce = 0.2; // 0.2
 
+    this.maxSearchArea = 5;
+
     this.arrived = false;
 
+    this.createDrawing(stage);
+  }
+
+  createDrawing(stage) {
     this.color = random(200, 255);
 
     this.rectangle = new PIXI.Graphics();
@@ -117,7 +123,10 @@ export default class Agent {
     if (this.arrived) return;
 
     if (!this.targetPath.length && !this.arrived) {
-      const targetSquare = this.findTargetFrom(this.currentSquare, 5);
+      const targetSquare = this.findTargetFrom(
+        this.currentSquare,
+        this.maxSearchArea
+      );
       if (!targetSquare) return;
       this.targetPath = this.findTargetPath(this.currentSquare, targetSquare);
       return;
@@ -146,25 +155,49 @@ export default class Agent {
 
   scoreSquare(origin: Coords) {
     return (coords: Coords) => {
-      let score = 0;
-      // let score = square.distance / this.parameters.disability;
-      // score += square.isSeat * this.parameters.tiredness;
       const distance = this.grid.distanceBetween(origin, coords);
-      score -= distance * (1 - this.parameters.capability);
 
-      const nearby = this.grid.agentsNearSquare(coords);
-      score -= nearby * 2;
+      // const distanceScore =
+      //   distance / this.maxSearchArea / this.parameters.capability;
 
+      // const nearby = this.grid.agentsNearSquare(coords);
+      // const nearbyScore = 1 - nearby / 8;
+
+      let typeScore;
       const square = this.grid.getSquare(coords);
-      if (square.seat) score += 2;
-      if (square.standing) score += 1;
-      // if (this.grid.getSquare(this.currentSquare).seat) score = 0; // if in a seat, higher threshold
-      // console.log(score);
+      if (square.seat)
+        typeScore = this.map(1 - this.parameters.capability, 0, 1, 0.5, 1);
+      // lower score if person finds it easier to stand. less capable, seat becomes more appealing
+      if (square.standing)
+        typeScore = this.map(this.parameters.capability, 0, 1, 0, 0.5);
+      // lower score if person finds harder to stand - more capable, standing is more appealing
+
+      const score = typeScore;
+      // const score = (distanceScore + nearbyScore + typeScore) / 3;
+
+      this.grid.updateSquareScore(coords, score);
+      console.log(square.standing);
+      console.log(
+        'seat:',
+        square.seat,
+        'standing',
+        square.standing,
+        'output score',
+        score
+      );
+
       return { coords, score };
     };
   }
 
   findTargetFrom(from: Coords, range: number) {
+    const boobs = this.grid
+      .getAccessibleNeighbors(from, range)
+      .map(this.scoreSquare.bind(this)(from))
+      .sort((a, b) => b.score - a.score)
+      .map(square => square.score);
+    console.log(boobs);
+
     const destination = this.grid
       .getAccessibleNeighbors(from, range)
       .map(this.scoreSquare.bind(this)(from))

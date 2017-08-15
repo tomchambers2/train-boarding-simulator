@@ -1,9 +1,9 @@
 export default {
   debug: false,
-  squareDimension: 10,
+  squareDimension: 20,
   size: 30,
-  canvasWidth: 300,
-  canvasHeight: 300,
+  canvasWidth: 800,
+  canvasHeight: 800,
   walls: [
     [9, 2],
     [5, 2],

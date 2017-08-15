@@ -64,6 +64,11 @@ export default class Grid {
     this.squares[x][y].occupier = agentId;
   }
 
+  updateSquareScore([x, y]: Coords, score: number) {
+    this.squares[x][y].score = score;
+    this.squares[x][y].message.text = score;
+  }
+
   setFeature(type: string, location: Coords) {
     const square = this.getSquareByPixels(location);
     this.squares[square[0]][square[1]][type] = true;
@@ -73,10 +78,12 @@ export default class Grid {
   }
 
   getSquareByPixels([x, y]: Coords) {
-    return [
+    const location = [
       Math.min(Math.floor(x / this.width), this.size - 1),
       Math.min(Math.floor(y / this.height), this.size - 1),
     ];
+    // console.log(x, y, location);
+    return location;
   }
 
   getSquareLocation([x, y]: Coords) {
@@ -194,24 +201,15 @@ export default class Grid {
         rectangle.y = j * this.width;
         stage.addChild(rectangle);
 
-        // fill(c);
-        // const s = this.debug ? 0 : 255;
-        // stroke(s);
-        // rect(i * this.height, j * this.width, this.height, this.width);
-      });
-    });
-  }
+        this.squares[i][j].message = new PIXI.Text(null, {
+          fontFamily: 'Arial',
+          fontSize: 15,
+          fill: 'white',
+        });
+        this.squares[i][j].message.x = i * this.height;
+        this.squares[i][j].message.y = j * this.width;
+        stage.addChild(this.squares[i][j].message);
 
-  draw(stage) {
-    // fill(255);
-    this.squares.forEach((row, i) => {
-      row.forEach((square, j) => {
-        // let c = 255;
-        // c = square.wall ? color(0, 0, 0) : c;
-        // c = square.seat ? color(0, 255, 0) : c;
-        // c = square.standing ? color(0, 0, 255) : c;
-        // c = square.path && this.debug ? color(255, 0, 0) : c;
-        // c = square.occupied && this.debug ? 0 : c;
         // fill(c);
         // const s = this.debug ? 0 : 255;
         // stroke(s);

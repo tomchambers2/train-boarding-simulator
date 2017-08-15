@@ -1,3 +1,7 @@
+jest.mock('pixi.js', () => {
+  Graphics: () => {};
+});
+
 import Grid from '../grid';
 import Agent from '../agent';
 
@@ -117,6 +121,8 @@ describe('Flock', () => {
 });
 
 describe('Agent', () => {
+  Agent.prototype.createDrawing = jest.fn();
+
   let agent;
   let grid;
 
@@ -132,6 +138,7 @@ describe('Agent', () => {
       }),
       distanceBetween: () => 1,
       agentsNearSquare: () => 2,
+      updateSquareScore: jest.fn(),
     };
     agent = new Agent(1, { x: 50, y: 50 }, { capability: 0.5 }, grid);
 
@@ -150,6 +157,7 @@ describe('Agent', () => {
       }),
       distanceBetween: () => 1,
       agentsNearSquare: () => 2,
+      updateSquareScore: jest.fn(),
     };
     agent = new Agent(1, { x: 50, y: 50 }, { capability: 0.5 }, grid);
 

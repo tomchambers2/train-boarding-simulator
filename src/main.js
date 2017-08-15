@@ -31,7 +31,7 @@ document.addEventListener(
           new Agent(
             1,
             new Vector(evt.clientX, evt.clientY),
-            { disability: 0.1 },
+            { capability: 0.8 },
             grid,
             stage
           )
@@ -58,9 +58,9 @@ document.addEventListener(
     };
 
     const draw = () => {
+      requestAnimationFrame(draw);
       flock.run();
       renderer.render(stage);
-      requestAnimationFrame(draw);
     };
 
     createAgents();
