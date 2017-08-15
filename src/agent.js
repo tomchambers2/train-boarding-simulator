@@ -155,49 +155,39 @@ export default class Agent {
 
   scoreSquare(origin: Coords) {
     return (coords: Coords) => {
+      const square = this.grid.getSquare(coords);
+
       const distance = this.grid.distanceBetween(origin, coords);
+      const distanceScore =
+        (1 - distance / (this.maxSearchArea * 2)) * this.parameters.capability; // higher disability, more important distant is
 
-      // const distanceScore =
-      //   distance / this.maxSearchArea / this.parameters.capability;
-
-      // const nearby = this.grid.agentsNearSquare(coords);
-      // const nearbyScore = 1 - nearby / 8;
+      const nearby = this.grid.agentsNearSquare(coords);
+      const nearbyScore = 1 - nearby / 8;
 
       let typeScore;
-      const square = this.grid.getSquare(coords);
       if (square.seat)
         typeScore = this.map(1 - this.parameters.capability, 0, 1, 0.5, 1);
-      // lower score if person finds it easier to stand. less capable, seat becomes more appealing
       if (square.standing)
         typeScore = this.map(this.parameters.capability, 0, 1, 0, 0.5);
-      // lower score if person finds harder to stand - more capable, standing is more appealing
 
-      const score = typeScore;
-      // const score = (distanceScore + nearbyScore + typeScore) / 3;
+      // const score = nearbyScore;
+      const score = (distanceScore + nearbyScore + typeScore) / 3;
 
       this.grid.updateSquareScore(coords, score);
-      console.log(square.standing);
-      console.log(
-        'seat:',
-        square.seat,
-        'standing',
-        square.standing,
-        'output score',
-        score
-      );
+      // console.log(
+      //   'seat:',
+      //   square.seat,
+      //   'standing',
+      //   square.standing,
+      //   'output score',
+      //   score
+      // );
 
       return { coords, score };
     };
   }
 
   findTargetFrom(from: Coords, range: number) {
-    const boobs = this.grid
-      .getAccessibleNeighbors(from, range)
-      .map(this.scoreSquare.bind(this)(from))
-      .sort((a, b) => b.score - a.score)
-      .map(square => square.score);
-    console.log(boobs);
-
     const destination = this.grid
       .getAccessibleNeighbors(from, range)
       .map(this.scoreSquare.bind(this)(from))

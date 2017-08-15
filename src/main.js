@@ -31,7 +31,7 @@ document.addEventListener(
           new Agent(
             1,
             new Vector(evt.clientX, evt.clientY),
-            { capability: 0.8 },
+            { capability: 0.2 },
             grid,
             stage
           )
