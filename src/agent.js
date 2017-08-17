@@ -45,6 +45,7 @@ export default class Agent {
       throw new Error('Must have capability parameter');
     }
 
+    this.dead = false;
     this.parameters = parameters;
     this.id = id;
     this.position = new Vector(x, y);
@@ -62,7 +63,7 @@ export default class Agent {
     this.maxSpeed = 2;
     this.maxForce = 0.2; // 0.2
 
-    this.maxSearchArea = 5;
+    this.maxSearchArea = 1;
 
     this.arrived = false;
 
@@ -88,6 +89,7 @@ export default class Agent {
   }
 
   run(agents: Array<Agent>) {
+    if (this.dead) return; // TODO: use a timer to efficiently research space
     // this.flock(agents);
     this.moveAgent();
     this.applyForce(this.seek(this.target));
@@ -119,6 +121,12 @@ export default class Agent {
     this.grid.updateSquare(this.currentSquare, true, this.id);
   }
 
+  stop() {
+    this.dead = true;
+    this.velocity = new Vector(0, 0);
+    this.acceleration = new Vector(0, 0);
+  }
+
   selectTarget() {
     if (this.arrived) return;
 
@@ -127,7 +135,11 @@ export default class Agent {
         this.currentSquare,
         this.maxSearchArea
       );
-      if (!targetSquare) return;
+      if (!targetSquare) {
+        console.log('THERE IS NO TARGET, STOP');
+        this.stop();
+        return;
+      }
       this.targetPath = this.findTargetPath(this.currentSquare, targetSquare);
       return;
     }
@@ -170,24 +182,31 @@ export default class Agent {
       if (square.standing)
         typeScore = this.map(this.parameters.capability, 0, 1, 0, 0.5);
 
-      // const score = nearbyScore;
-      const score = (distanceScore + nearbyScore + typeScore) / 3;
+      // const score = (distanceScore + nearbyScore + typeScore) / 3;
+      const score = (distanceScore + typeScore) / 2;
 
       this.grid.updateSquareScore(coords, score);
-      // console.log(
-      //   'seat:',
-      //   square.seat,
-      //   'standing',
-      //   square.standing,
-      //   'output score',
-      //   score
-      // );
-
       return { coords, score };
     };
   }
 
   findTargetFrom(from: Coords, range: number) {
+    // const scores = this.grid
+    //   .getAccessibleNeighbors(from, range)
+    //   .map(this.scoreSquare.bind(this)(from))
+    //   .sort((a, b) => b.score - a.score)
+    //   .map(({ score }) => score);
+    // console.log('scores', scores);
+    //
+    // this.grid.getAccessibleNeighbors(from, range).map(square => {
+    //   if (square.occupied) {
+    //     console.log('ITS OCCUPIED');
+    //   }
+    //   if (square.wall) {
+    //     console.log('ITS A WALL');
+    //   }
+    // });
+
     const destination = this.grid
       .getAccessibleNeighbors(from, range)
       .map(this.scoreSquare.bind(this)(from))

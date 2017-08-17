@@ -1,5 +1,5 @@
 export default {
-  debug: false,
+  debug: true,
   squareDimension: 20,
   size: 30,
   canvasWidth: 800,

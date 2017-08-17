@@ -18,6 +18,8 @@ export default class Grid {
     this.size = data.size;
     this.debug = data.debug;
 
+    console.log('WE DEBUG');
+
     const squareTemplate = {
       wall: false,
       seat: false,
@@ -60,13 +62,19 @@ export default class Grid {
   }
 
   updateSquare([x, y]: Coords, state: boolean, agentId: number) {
-    this.squares[x][y].occupied = !!state;
-    this.squares[x][y].occupier = agentId;
+    if (state) {
+      this.squares[x][y].occupied = !!state;
+      this.squares[x][y].occupier = agentId;
+    }
+
+    // this.squares[x][y].rectangle.beginFill(0x000000);
+    // this.squares[x][y].rectangle.drawRect(0, 0, this.height, this.width);
+    // this.squares[x][y].rectangle.endFill();
   }
 
   updateSquareScore([x, y]: Coords, score: number) {
     this.squares[x][y].score = score;
-    this.squares[x][y].message.text = score;
+    // this.squares[x][y].message.text = score;
   }
 
   setFeature(type: string, location: Coords) {
@@ -134,6 +142,7 @@ export default class Grid {
       const testSquare = this.getSquare(coords);
       return (testSquare.seat || testSquare.standing) && !testSquare.occupied;
     });
+    console.log('availableSquares', availableSquares);
     return availableSquares;
   }
 
@@ -179,6 +188,8 @@ export default class Grid {
       }
     }
     path.shift();
+
+    console.log('FOUND PATH', JSON.stringify(path));
     return path;
   }
 
@@ -189,8 +200,8 @@ export default class Grid {
         c = square.wall ? 0x000000 : c;
         c = square.seat ? 0x00ff00 : c;
         c = square.standing ? 0x0000ff : c;
-        c = square.path && this.debug ? 0xff0000 : c;
-        c = square.occupied && this.debug ? 0x000000 : c;
+        // c = square.path && this.debug ? 0xff0000 : c;
+        // c = square.occupied && this.debug ? 0x000000 : c;
 
         const rectangle = new PIXI.Graphics();
         rectangle.lineStyle(0.5, 0x000000, 1);
@@ -201,14 +212,17 @@ export default class Grid {
         rectangle.y = j * this.width;
         stage.addChild(rectangle);
 
+        this.squares[i][j].rectangle = rectangle;
+
         this.squares[i][j].message = new PIXI.Text(null, {
           fontFamily: 'Arial',
-          fontSize: 15,
+          fontSize: 7,
           fill: 'white',
         });
+        this.squares[i][j].message.text = `${i},${j}`;
         this.squares[i][j].message.x = i * this.height;
         this.squares[i][j].message.y = j * this.width;
-        stage.addChild(this.squares[i][j].message);
+        // stage.addChild(this.squares[i][j].message);
 
         // fill(c);
         // const s = this.debug ? 0 : 255;
