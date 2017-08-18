@@ -127,21 +127,30 @@ export default class Agent {
     this.acceleration = new Vector(0, 0);
   }
 
+  getTargetPath(targets) {
+    if (!targets.length) {
+      console.log('no accessible targets');
+      this.stop();
+      return;
+    }
+    const path = this.findTargetPath(this.currentSquare, targets[0].coords);
+    if (!path.length) {
+      console.log('no route to ', targets[0].coords, 'use next');
+      targets.shift();
+      return this.getTargetPath(targets);
+    }
+    return path;
+  }
+
   selectTarget() {
     if (this.arrived) return;
 
     if (!this.targetPath.length && !this.arrived) {
-      const targetSquare = this.findTargetFrom(
+      const targets = this.findTargetsFrom(
         this.currentSquare,
         this.maxSearchArea
       );
-      if (!targetSquare) {
-        console.log('THERE IS NO TARGET, STOP');
-        this.stop();
-        return;
-      }
-      console.log('TARGET IS', targetSquare);
-      this.targetPath = this.findTargetPath(this.currentSquare, targetSquare);
+      this.targetPath = this.getTargetPath(targets);
       return;
     }
 
@@ -191,7 +200,7 @@ export default class Agent {
     };
   }
 
-  findTargetFrom(from: Coords, range: number) {
+  findTargetsFrom(from: Coords, range: number) {
     // const scores = this.grid
     //   .getAccessibleNeighbors(from, range)
     //   .map(this.scoreSquare.bind(this)(from))
@@ -208,11 +217,10 @@ export default class Agent {
     //   }
     // });
 
-    const destination = this.grid
+    return this.grid
       .getAccessibleNeighbors(from, range)
       .map(this.scoreSquare.bind(this)(from))
-      .sort((a, b) => b.score - a.score)[0];
-    return (destination && destination.coords) || null;
+      .sort((a, b) => b.score - a.score);
   }
 
   findTargetPath(from: Coords, to: Coords) {

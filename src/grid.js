@@ -127,8 +127,6 @@ export default class Grid {
 
   isBlocked(coords: Coords) {
     const square = this.getSquare(coords);
-    (square.wall || square.occupied || square.seat) &&
-      console.log(coords, 'is blocked');
     return square.wall || square.occupied || square.seat;
   }
 
@@ -190,16 +188,17 @@ export default class Grid {
           continue;
         this.squares[neighbor[0]][neighbor[1]].searching = true;
 
-        if (!this.coordsMatch(neighbor, to)) {
-          this.squares[neighbor[0]][neighbor[1]].rectangle.beginFill(0xff0000);
-          this.squares[neighbor[0]][neighbor[1]].rectangle.drawRect(
-            0,
-            0,
-            this.height,
-            this.width
-          );
-          this.squares[neighbor[0]][neighbor[1]].rectangle.endFill();
-        }
+        // FIXME: change color instead of drawing new squares
+        // if (!this.coordsMatch(neighbor, to)) {
+        //   this.squares[neighbor[0]][neighbor[1]].rectangle.beginFill(0xff0000);
+        //   this.squares[neighbor[0]][neighbor[1]].rectangle.drawRect(
+        //     0,
+        //     0,
+        //     this.height,
+        //     this.width
+        //   );
+        //   this.squares[neighbor[0]][neighbor[1]].rectangle.endFill();
+        // }
 
         if (closed.some(other => this.coordsMatch(neighbor, other))) continue;
         if (!open.some(other => this.coordsMatch(neighbor, other))) {
@@ -245,7 +244,8 @@ export default class Grid {
         this.squares[i][j].message.text = `${i},${j}`;
         this.squares[i][j].message.x = i * this.height;
         this.squares[i][j].message.y = j * this.width;
-        stage.addChild(this.squares[i][j].message);
+        // FIXME somehow make square numbers work better
+        // stage.addChild(this.squares[i][j].message);
 
         // fill(c);
         // const s = this.debug ? 0 : 255;
