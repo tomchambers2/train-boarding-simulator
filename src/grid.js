@@ -62,10 +62,10 @@ export default class Grid {
   }
 
   updateSquare([x, y]: Coords, state: boolean, agentId: number) {
-    if (state) {
-      this.squares[x][y].occupied = !!state;
-      this.squares[x][y].occupier = agentId;
-    }
+    // if (state) {
+    this.squares[x][y].occupied = !!state;
+    this.squares[x][y].occupier = agentId;
+    // }
 
     // this.squares[x][y].rectangle.beginFill(0x000000);
     // this.squares[x][y].rectangle.drawRect(0, 0, this.height, this.width);
@@ -127,6 +127,8 @@ export default class Grid {
 
   isBlocked(coords: Coords) {
     const square = this.getSquare(coords);
+    (square.wall || square.occupied || square.seat) &&
+      console.log(coords, 'is blocked');
     return square.wall || square.occupied || square.seat;
   }
 
@@ -147,6 +149,15 @@ export default class Grid {
   }
 
   findPath(from: Coords, to: Coords) {
+    this.squares[to[0]][to[1]].rectangle.beginFill(0xc8d953);
+    this.squares[to[0]][to[1]].rectangle.drawRect(
+      0,
+      0,
+      this.height,
+      this.width
+    );
+    this.squares[to[0]][to[1]].rectangle.endFill();
+
     const open = [from];
     const closed = [];
     const cameFrom = {};
@@ -178,6 +189,18 @@ export default class Grid {
         if (this.isBlocked(neighbor) && !this.coordsMatch(neighbor, to))
           continue;
         this.squares[neighbor[0]][neighbor[1]].searching = true;
+
+        if (!this.coordsMatch(neighbor, to)) {
+          this.squares[neighbor[0]][neighbor[1]].rectangle.beginFill(0xff0000);
+          this.squares[neighbor[0]][neighbor[1]].rectangle.drawRect(
+            0,
+            0,
+            this.height,
+            this.width
+          );
+          this.squares[neighbor[0]][neighbor[1]].rectangle.endFill();
+        }
+
         if (closed.some(other => this.coordsMatch(neighbor, other))) continue;
         if (!open.some(other => this.coordsMatch(neighbor, other))) {
           open.push(neighbor);
@@ -222,7 +245,7 @@ export default class Grid {
         this.squares[i][j].message.text = `${i},${j}`;
         this.squares[i][j].message.x = i * this.height;
         this.squares[i][j].message.y = j * this.width;
-        // stage.addChild(this.squares[i][j].message);
+        stage.addChild(this.squares[i][j].message);
 
         // fill(c);
         // const s = this.debug ? 0 : 255;

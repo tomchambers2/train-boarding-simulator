@@ -49,7 +49,7 @@ export default class Agent {
     this.parameters = parameters;
     this.id = id;
     this.position = new Vector(x, y);
-    this.target = new Vector(0, 0);
+    this.target = new Vector(x, y);
     this.targetPath = [];
     this.grid = grid;
     this.currentSquare = null;
@@ -63,7 +63,7 @@ export default class Agent {
     this.maxSpeed = 2;
     this.maxForce = 0.2; // 0.2
 
-    this.maxSearchArea = 1;
+    this.maxSearchArea = 5;
 
     this.arrived = false;
 
@@ -140,6 +140,7 @@ export default class Agent {
         this.stop();
         return;
       }
+      console.log('TARGET IS', targetSquare);
       this.targetPath = this.findTargetPath(this.currentSquare, targetSquare);
       return;
     }
@@ -182,8 +183,8 @@ export default class Agent {
       if (square.standing)
         typeScore = this.map(this.parameters.capability, 0, 1, 0, 0.5);
 
-      // const score = (distanceScore + nearbyScore + typeScore) / 3;
-      const score = (distanceScore + typeScore) / 2;
+      const score = (distanceScore + nearbyScore + typeScore) / 3;
+      // const score = (distanceScore + typeScore) / 2;
 
       this.grid.updateSquareScore(coords, score);
       return { coords, score };

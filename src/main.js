@@ -25,7 +25,10 @@ document.addEventListener(
     // $FlowFixMe
     document.body.addEventListener('click', evt => {
       if (evt.shiftKey) {
-        grid.setFeature(window.type || 'wall', [evt.clientX, evt.clientY]);
+        grid.setFeature(window.type || 'wall', [
+          evt.clientX - 10,
+          evt.clientY - 10,
+        ]);
       } else {
         flock.add(
           new Agent(
