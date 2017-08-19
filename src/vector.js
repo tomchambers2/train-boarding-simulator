@@ -66,6 +66,15 @@ export default class Vector {
     return target;
   }
 
+  static dist(v1, v2) {
+    return v1.dist(v2);
+  }
+
+  dist(v) {
+    var d = v.copy().sub(this);
+    return d.mag();
+  }
+
   copy() {
     return new Vector(this.x, this.y);
   }

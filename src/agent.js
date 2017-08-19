@@ -1,6 +1,7 @@
 // @flow
 
 const SLOWING_DISTANCE = 10;
+const PAUSE_TIME = 700; // miliseconds
 
 import * as PIXI from 'pixi.js';
 
@@ -64,6 +65,7 @@ export default class Agent {
     this.maxForce = 0.2; // 0.2
 
     this.maxSearchArea = 5;
+    this.elapsed = Date.now();
 
     this.arrived = false;
 
@@ -88,9 +90,18 @@ export default class Agent {
     console.log(msg, 'background: #222; color: #bada55');
   }
 
+  incrementTimer() {
+    this.elapsed = Date.now();
+  }
+
   run(agents: Array<Agent>) {
+    this.incrementTimer();
+    if (this.elapsed - this.stoppedTime > PAUSE_TIME) {
+      console.log('restart agent');
+      this.dead = false;
+    }
     if (this.dead) return; // TODO: use a timer to efficiently research space
-    // this.flock(agents);
+    this.flock(agents);
     this.moveAgent();
     this.applyForce(this.seek(this.target));
     this.updateGridLocation();
@@ -122,6 +133,7 @@ export default class Agent {
   }
 
   stop() {
+    this.stoppedTime = Date.now();
     this.dead = true;
     this.velocity = new Vector(0, 0);
     this.acceleration = new Vector(0, 0);
@@ -131,7 +143,8 @@ export default class Agent {
     if (!targets.length) {
       console.log('no accessible targets');
       this.stop();
-      return;
+      this.targetPath = [];
+      return [];
     }
     const path = this.findTargetPath(this.currentSquare, targets[0].coords);
     if (!path.length) {
@@ -165,6 +178,7 @@ export default class Agent {
     if (this.grid.coordsMatch(this.targetPath[0], this.currentSquare)) {
       this.targetPath.shift();
       if (!this.targetPath.length) this.arrived = true;
+      // if (!this.targetPath.length) this.stop();
       return;
     }
 
@@ -256,9 +270,9 @@ export default class Agent {
   }
 
   flock(agents: Array<Agent>) {
-    // const separation = this.separate(agents);
-    // separation.mult(1.5);
-    // this.applyForce(separation);
+    const separation = this.separate(agents);
+    separation.mult(1.5);
+    this.applyForce(separation);
     // const alignment = this.align(agents);
     // alignment.mult(1);
     // this.applyForce(alignment);
@@ -298,54 +312,54 @@ export default class Agent {
     // pop();
   }
 
-  // separate(agents) {
-  //   const desiredSeparation = 25;
-  //   const steer = new Vector(0, 0, 0);
-  //   let count = 0;
-  //   for (const other of agents) {
-  //     const distance = Vector.dist(this.position, other.position);
-  //     if (distance > 0 && distance < desiredSeparation) {
-  //       const diff = Vector.sub(this.position, other.position);
-  //       diff.normalize();
-  //       diff.div(distance);
-  //       steer.add(diff);
-  //       count++;
-  //     }
-  //   }
-  //   if (count > 0) {
-  //     steer.div(count);
-  //   }
-  //   if (steer.mag() > 0) {
-  //     steer.normalize();
-  //     steer.mult(this.maxSpeed);
-  //     steer.sub(this.velocity);
-  //     steer.limit(this.maxForce);
-  //   }
-  //   return steer;
-  // }
-  //
-  // align(agents) {
-  //   const neighborDist = 50;
-  //   const sum = new Vector(0, 0);
-  //   let count = 0;
-  //   for (const other of agents) {
-  //     const distance = Vector.dist(this.position, other.position);
-  //     if (distance > 0 && distance < neighborDist) {
-  //       sum.add(other.velocity);
-  //       count++;
-  //     }
-  //   }
-  //   if (count > 0) {
-  //     sum.div(count);
-  //     sum.normalize();
-  //     sum.mult(this.maxSpeed);
-  //     const steer = Vector.sub(sum, this.velocity);
-  //     steer.limit(this.maxForce);
-  //     return steer;
-  //   } else {
-  //     return new Vector(0, 0);
-  //   }
-  // }
+  separate(agents) {
+    const desiredSeparation = 10;
+    const steer = new Vector(0, 0, 0);
+    let count = 0;
+    for (const other of agents) {
+      const distance = Vector.dist(this.position, other.position);
+      if (distance > 0 && distance < desiredSeparation) {
+        const diff = Vector.sub(this.position, other.position);
+        diff.normalize();
+        diff.div(distance);
+        steer.add(diff);
+        count++;
+      }
+    }
+    if (count > 0) {
+      steer.div(count);
+    }
+    if (steer.mag() > 0) {
+      steer.normalize();
+      steer.mult(this.maxSpeed);
+      steer.sub(this.velocity);
+      steer.limit(this.maxForce);
+    }
+    return steer;
+  }
+
+  align(agents) {
+    const neighborDist = 50;
+    const sum = new Vector(0, 0);
+    let count = 0;
+    for (const other of agents) {
+      const distance = Vector.dist(this.position, other.position);
+      if (distance > 0 && distance < neighborDist) {
+        sum.add(other.velocity);
+        count++;
+      }
+    }
+    if (count > 0) {
+      sum.div(count);
+      sum.normalize();
+      sum.mult(this.maxSpeed);
+      const steer = Vector.sub(sum, this.velocity);
+      steer.limit(this.maxForce);
+      return steer;
+    } else {
+      return new Vector(0, 0);
+    }
+  }
   //
   // cohesion(agents) {
   //   const neighborDist = 50;
