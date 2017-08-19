@@ -182,6 +182,17 @@ export default class Agent {
       }
       if (targets[0].score <= this.highScore) {
         console.log('existing target higher, use that', this.id);
+
+        const destination = this.grid.getSquare(
+          this.targetPath[this.targetPath.length - 1]
+        );
+        if (destination.occupied && destination.occupier !== this.id) {
+          console.log('desintation is occupied!');
+          this.highScore = 0;
+          this.targetFound = false;
+          return;
+        }
+
         this.stoppedTime = Date.now();
         this.targetFound = true;
         return;
@@ -198,14 +209,8 @@ export default class Agent {
     }
 
     // FIXME use this in case user turns off find new path every second
-    // const destination = this.grid.getSquare(
-    //   this.targetPath[this.targetPath.length - 1]
-    // );
-    // if (destination.occupied && destination.occupier !== this.id) {
-    //   console.log('desintation is occupied!');
-    //   this.targetPath = [];
-    //   return;
-    // }
+    if (this.targetPath.length) {
+    }
 
     if (this.grid.coordsMatch(this.targetPath[0], this.currentSquare)) {
       this.targetPath.shift();
