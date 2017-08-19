@@ -8,17 +8,19 @@ import Vector from './vector';
 export default class Grid {
   height: number;
   width: number;
-  size: number;
+  gridDimensions: {
+    width: number,
+    height: number,
+  };
   squares: Array<Square>;
   added: Array<Coords>;
   debug: boolean;
 
-  constructor(data: Data, stage) {
+  constructor(data: Data, stage: PIXI.Container) {
     this.height = this.width = data.squareDimension;
-    this.size = data.size;
+    this.gridDimensions = data.gridDimensions;
     this.debug = data.debug;
-
-    console.log('WE DEBUG');
+    this.stage = stage;
 
     const squareTemplate = {
       wall: false,
@@ -27,8 +29,8 @@ export default class Grid {
       occupied: false,
       occupier: null,
     };
-    this.squares = new Array(data.size).fill(
-      new Array(data.size).fill(data.size)
+    this.squares = new Array(data.gridDimensions.width).fill(
+      new Array(data.gridDimensions.height).fill(data.gridDimensions.height)
     );
 
     this.squares = this.squares.map(column =>
@@ -82,15 +84,24 @@ export default class Grid {
     this.squares[square[0]][square[1]][type] = true;
     this.added = this.added || [];
     this.added.push(square);
-    console.log(JSON.stringify(this.added));
+    console.info(JSON.stringify(this.added));
+
+    console.log(location);
+    const rectangle = this.squares[square[0]][square[1]].rectangle;
+    rectangle.lineStyle(0.5, 0x000000, 1);
+    rectangle.beginFill(0x000000);
+    rectangle.drawRect(0, 0, this.height, this.width);
+    rectangle.endFill();
+    // rectangle.x = location.x * this.height;
+    // rectangle.y = location.y * this.width;
+    // this.stage.addChild(rectangle);
   }
 
   getSquareByPixels([x, y]: Coords) {
     const location = [
-      Math.min(Math.floor(x / this.width), this.size - 1),
-      Math.min(Math.floor(y / this.height), this.size - 1),
+      Math.min(Math.floor(x / this.width), this.gridDimensions.width - 1),
+      Math.min(Math.floor(y / this.height), this.gridDimensions.height - 1),
     ];
-    // console.log(x, y, location);
     return location;
   }
 
@@ -142,7 +153,6 @@ export default class Grid {
       const testSquare = this.getSquare(coords);
       return (testSquare.seat || testSquare.standing) && !testSquare.occupied;
     });
-    console.log('availableSquares', availableSquares);
     return availableSquares;
   }
 
@@ -211,11 +221,10 @@ export default class Grid {
     }
     path.shift();
 
-    console.log('FOUND PATH', JSON.stringify(path));
     return path;
   }
 
-  create(stage) {
+  create(stage: PIXI.Container) {
     this.squares.forEach((row, i) => {
       row.forEach((square, j) => {
         let c = 0xffffff;
@@ -226,7 +235,8 @@ export default class Grid {
         // c = square.occupied && this.debug ? 0x000000 : c;
 
         const rectangle = new PIXI.Graphics();
-        rectangle.lineStyle(0.5, 0x000000, 1);
+        const lineWidth = this.debug ? 1 : 0;
+        rectangle.lineStyle(1, 0x000000, 1);
         rectangle.beginFill(c);
         rectangle.drawRect(0, 0, this.height, this.width);
         rectangle.endFill();

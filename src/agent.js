@@ -21,6 +21,7 @@ export default class Agent {
   maxSpeed: number;
   maxForce: number;
   arrived: boolean;
+  dead: boolean;
   color: number;
   position: Vector;
   target: Vector;
@@ -32,6 +33,11 @@ export default class Agent {
   currentSquare: Coords;
   canvasWidth: number;
   canvasHeight: number;
+  rectangle: PIXI.Graphics;
+  stage: PIXI.Container;
+  maxSearchArea: number;
+  elapsed: number;
+  stoppedTime: number;
 
   constructor(
     id: number,
@@ -40,7 +46,7 @@ export default class Agent {
       capability: number,
     },
     grid: Grid,
-    stage
+    stage: PIXI.Container
   ) {
     if (!parameters || !parameters.capability) {
       throw new Error('Must have capability parameter');
@@ -72,7 +78,7 @@ export default class Agent {
     this.createDrawing(stage);
   }
 
-  createDrawing(stage) {
+  createDrawing(stage: PIXI.container) {
     this.color = random(200, 255);
 
     this.rectangle = new PIXI.Graphics();
@@ -87,28 +93,31 @@ export default class Agent {
 
   log(msg: string) {
     if (this.id !== 1) return;
-    console.log(msg, 'background: #222; color: #bada55');
+    console.info(msg, 'background: #222; color: #bada55');
   }
 
   incrementTimer() {
     this.elapsed = Date.now();
+    if (this.elapsed - this.stoppedTime > PAUSE_TIME) this.dead = false;
   }
 
   run(agents: Array<Agent>) {
     this.incrementTimer();
-    if (this.elapsed - this.stoppedTime > PAUSE_TIME) {
-      console.log('restart agent');
-      this.dead = false;
-    }
-    if (this.dead) return; // TODO: use a timer to efficiently research space
+    if (this.dead) return;
+
     this.flock(agents);
     this.moveAgent();
-    this.applyForce(this.seek(this.target));
+    this.seekTarget();
+    this.borders();
+
     this.updateGridLocation();
     this.selectTarget();
 
-    this.borders();
     this.render();
+  }
+
+  seekTarget() {
+    this.applyForce(this.seek(this.target));
   }
 
   moveAgent() {
@@ -119,12 +128,9 @@ export default class Agent {
     this.acceleration.mult(0);
   }
 
-  unsetOldPosition() {
-    this.grid.updateSquare(this.currentSquare, false, this.id);
-  }
-
   updateGridLocation() {
-    if (this.currentSquare) this.unsetOldPosition();
+    if (this.currentSquare)
+      this.grid.updateSquare(this.currentSquare, false, this.id);
     this.currentSquare = this.grid.getSquareByPixels([
       this.position.x,
       this.position.y,
@@ -139,16 +145,14 @@ export default class Agent {
     this.acceleration = new Vector(0, 0);
   }
 
-  getTargetPath(targets) {
+  getTargetPath(targets: Array<Coords>) {
     if (!targets.length) {
-      console.log('no accessible targets');
       this.stop();
       this.targetPath = [];
       return [];
     }
     const path = this.findTargetPath(this.currentSquare, targets[0].coords);
     if (!path.length) {
-      console.log('no route to ', targets[0].coords, 'use next');
       targets.shift();
       return this.getTargetPath(targets);
     }
@@ -178,7 +182,6 @@ export default class Agent {
     if (this.grid.coordsMatch(this.targetPath[0], this.currentSquare)) {
       this.targetPath.shift();
       if (!this.targetPath.length) this.arrived = true;
-      // if (!this.targetPath.length) this.stop();
       return;
     }
 
@@ -207,7 +210,6 @@ export default class Agent {
         typeScore = this.map(this.parameters.capability, 0, 1, 0, 0.5);
 
       const score = (distanceScore + nearbyScore + typeScore) / 3;
-      // const score = (distanceScore + typeScore) / 2;
 
       this.grid.updateSquareScore(coords, score);
       return { coords, score };
@@ -215,22 +217,6 @@ export default class Agent {
   }
 
   findTargetsFrom(from: Coords, range: number) {
-    // const scores = this.grid
-    //   .getAccessibleNeighbors(from, range)
-    //   .map(this.scoreSquare.bind(this)(from))
-    //   .sort((a, b) => b.score - a.score)
-    //   .map(({ score }) => score);
-    // console.log('scores', scores);
-    //
-    // this.grid.getAccessibleNeighbors(from, range).map(square => {
-    //   if (square.occupied) {
-    //     console.log('ITS OCCUPIED');
-    //   }
-    //   if (square.wall) {
-    //     console.log('ITS A WALL');
-    //   }
-    // });
-
     return this.grid
       .getAccessibleNeighbors(from, range)
       .map(this.scoreSquare.bind(this)(from))
@@ -293,26 +279,11 @@ export default class Agent {
   }
 
   render() {
-    // const theta = this.velocity.heading() + radians(90);
     this.rectangle.x = this.position.x;
     this.rectangle.y = this.position.y;
-    // push();
-    // fill(color(this.color));
-    // stroke(0);
-    // translate(this.position.x, this.position.y);
-    // rotate(theta);
-    // beginShape(TRIANGLES);
-    // vertex(0, -this.radius * 2);
-    // vertex(-this.radius, this.radius * 2);
-    // vertex(this.radius, this.radius * 2);
-    // endShape();
-    // rotate(-theta);
-    // textSize(18);
-    // fill(0);
-    // pop();
   }
 
-  separate(agents) {
+  separate(agents: Array<Agent>) {
     const desiredSeparation = 10;
     const steer = new Vector(0, 0, 0);
     let count = 0;
@@ -338,7 +309,7 @@ export default class Agent {
     return steer;
   }
 
-  align(agents) {
+  align(agents: Array<Agent>) {
     const neighborDist = 50;
     const sum = new Vector(0, 0);
     let count = 0;
@@ -360,23 +331,23 @@ export default class Agent {
       return new Vector(0, 0);
     }
   }
-  //
-  // cohesion(agents) {
-  //   const neighborDist = 50;
-  //   const sum = new Vector(0, 0);
-  //   let count = 0;
-  //   for (const other of agents) {
-  //     const distance = Vector.dist(this.position, other.position);
-  //     if (distance > 0 && distance < neighborDist) {
-  //       sum.add(other.position);
-  //       count++;
-  //     }
-  //   }
-  //   if (count > 0) {
-  //     sum.div(count);
-  //     return this.seek(sum);
-  //   } else {
-  //     return new Vector(0, 0);
-  //   }
-  // }
+
+  cohesion(agents: Array<Agent>) {
+    const neighborDist = 50;
+    const sum = new Vector(0, 0);
+    let count = 0;
+    for (const other of agents) {
+      const distance = Vector.dist(this.position, other.position);
+      if (distance > 0 && distance < neighborDist) {
+        sum.add(other.position);
+        count++;
+      }
+    }
+    if (count > 0) {
+      sum.div(count);
+      return this.seek(sum);
+    } else {
+      return new Vector(0, 0);
+    }
+  }
 }

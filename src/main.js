@@ -5,11 +5,11 @@ import * as PIXI from 'pixi.js';
 import Flock from './flock';
 import Grid from './grid';
 import Agent from './agent';
-import data from './data';
 import Vector from './vector';
+import data from './data';
 
 const flock = new Flock();
-const numAgents = 0;
+const startingAgents = 0;
 
 document.addEventListener(
   'DOMContentLoaded',
@@ -20,6 +20,7 @@ document.addEventListener(
     );
     // $FlowFixMe
     document.body.appendChild(renderer.view);
+    renderer.backgroundColor = 0xffffff;
     var stage = new PIXI.Container();
 
     // $FlowFixMe
@@ -47,7 +48,7 @@ document.addEventListener(
     const createAgents = () => {
       grid.create(stage);
 
-      for (var i = 0; i < numAgents; i++) {
+      for (var i = 0; i < startingAgents; i++) {
         flock.add(
           new Agent(
             i + 1,

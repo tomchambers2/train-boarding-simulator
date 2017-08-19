@@ -66,11 +66,11 @@ export default class Vector {
     return target;
   }
 
-  static dist(v1, v2) {
+  static dist(v1: Vector, v2: Vector) {
     return v1.dist(v2);
   }
 
-  dist(v) {
+  dist(v: Vector) {
     var d = v.copy().sub(this);
     return d.mag();
   }
