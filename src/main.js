@@ -11,6 +11,8 @@ import data from './data';
 const flock = new Flock();
 const startingAgents = 0;
 
+let totalAgents = startingAgents;
+
 document.addEventListener(
   'DOMContentLoaded',
   () => {
@@ -33,7 +35,7 @@ document.addEventListener(
       } else {
         flock.add(
           new Agent(
-            1,
+            ++totalAgents,
             new Vector(evt.clientX, evt.clientY),
             { capability: 0.2 },
             grid,

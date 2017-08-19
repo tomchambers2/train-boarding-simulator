@@ -66,8 +66,8 @@ export default class Agent {
     this.acceleration = new Vector(0, 0);
     this.velocity = new Vector(random(-1, 1), random(-1, 1));
     this.radius = 3;
-    // this.maxSpeed = parameters.capability * 4; // 2
-    this.maxSpeed = 2;
+    this.maxSpeed = this.map(parameters.capability, 0, 1, 0.5, 6); // 2
+    // this.maxSpeed = 2;
     this.maxForce = 0.2; // 0.2
 
     this.maxSearchArea = 5;
@@ -98,7 +98,10 @@ export default class Agent {
 
   incrementTimer() {
     this.elapsed = Date.now();
-    if (this.elapsed - this.stoppedTime > PAUSE_TIME) this.dead = false;
+    if (this.elapsed - this.stoppedTime > PAUSE_TIME) {
+      this.targetFound = false;
+      this.dead = false;
+    }
   }
 
   run(agents: Array<Agent>) {
@@ -159,25 +162,50 @@ export default class Agent {
     return path;
   }
 
+  recursiveTargetSearch(currentSquare, maxSearchArea) {
+    const targets = this.findTargetsFrom(currentSquare, maxSearchArea);
+    if (targets.length) return targets;
+    return this.recursiveTargetSearch(currentSquare, maxSearchArea + 1);
+  }
+
   selectTarget() {
     if (this.arrived) return;
 
-    if (!this.targetPath.length && !this.arrived) {
-      const targets = this.findTargetsFrom(
+    if (!this.targetFound && !this.arrived) {
+      const targets = this.recursiveTargetSearch(
         this.currentSquare,
         this.maxSearchArea
       );
+      if (!targets[0]) {
+        console.log('no target found stop', this.id);
+        return this.stop();
+      }
+      if (targets[0].score <= this.highScore) {
+        console.log('existing target higher, use that', this.id);
+        this.stoppedTime = Date.now();
+        this.targetFound = true;
+        return;
+      }
+      console.log('target', targets[0].score);
       this.targetPath = this.getTargetPath(targets);
+      if (this.targetPath.length) {
+        // this.target = targets[0];
+        this.highScore = targets[0].score;
+        this.stoppedTime = Date.now();
+        this.targetFound = true;
+      }
       return;
     }
 
-    const destination = this.grid.getSquare(
-      this.targetPath[this.targetPath.length - 1]
-    );
-    if (destination.occupied && destination.occupier !== this.id) {
-      this.targetPath = [];
-      return;
-    }
+    // FIXME use this in case user turns off find new path every second
+    // const destination = this.grid.getSquare(
+    //   this.targetPath[this.targetPath.length - 1]
+    // );
+    // if (destination.occupied && destination.occupier !== this.id) {
+    //   console.log('desintation is occupied!');
+    //   this.targetPath = [];
+    //   return;
+    // }
 
     if (this.grid.coordsMatch(this.targetPath[0], this.currentSquare)) {
       this.targetPath.shift();

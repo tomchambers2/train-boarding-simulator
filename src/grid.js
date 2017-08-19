@@ -236,7 +236,7 @@ export default class Grid {
 
         const rectangle = new PIXI.Graphics();
         const lineWidth = this.debug ? 1 : 0;
-        rectangle.lineStyle(1, 0x000000, 1);
+        rectangle.lineStyle(lineWidth, 0x000000, 1);
         rectangle.beginFill(c);
         rectangle.drawRect(0, 0, this.height, this.width);
         rectangle.endFill();

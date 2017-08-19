@@ -8,6 +8,7 @@ export default {
   canvasWidth: 1000,
   canvasHeight: 300,
   walls: [
+    [9, 2],
     [82, 8],
     [81, 8],
     [80, 8],
