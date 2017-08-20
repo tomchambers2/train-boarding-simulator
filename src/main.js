@@ -13,6 +13,14 @@ const startingAgents = 0;
 
 let totalAgents = startingAgents;
 
+const spawnPoints = [
+  new Vector(166, 100),
+  new Vector(445, 94),
+  new Vector(714, 105),
+];
+
+let type = 'wall';
+
 document.addEventListener(
   'DOMContentLoaded',
   () => {
@@ -25,24 +33,43 @@ document.addEventListener(
     renderer.backgroundColor = 0xffffff;
     var stage = new PIXI.Container();
 
+    const types = evt => {
+      type = evt.target.value;
+    };
+
+    // $FlowFixMe
+    document
+      .getElementById('type-selector-1')
+      .addEventListener('change', types);
+    document
+      .getElementById('type-selector-2')
+      .addEventListener('change', types);
+    document
+      .getElementById('type-selector-3')
+      .addEventListener('change', types);
+
     // $FlowFixMe
     document.body.addEventListener('click', evt => {
       if (evt.shiftKey) {
-        grid.setFeature(window.type || 'wall', [
-          evt.clientX - 10,
-          evt.clientY - 10,
-        ]);
-      } else {
-        flock.add(
-          new Agent(
-            ++totalAgents,
-            new Vector(evt.clientX, evt.clientY),
-            { capability: 0.2 },
-            grid,
-            stage
-          )
-        );
+        console.log('add feature', type);
+        grid.setFeature(type || 'wall', [evt.clientX - 10, evt.clientY - 10]);
       }
+    });
+
+    // $FlowFixMe
+    document.getElementById('new-agent').addEventListener('click', evt => {
+      const pick = Math.ceil(Math.random() * spawnPoints.length) - 1;
+      console.log(pick);
+      const initialPosition = spawnPoints[pick];
+      flock.add(
+        new Agent(
+          ++totalAgents,
+          initialPosition,
+          { capability: 0.5 },
+          grid,
+          stage
+        )
+      );
     });
 
     const grid = new Grid(data, stage);

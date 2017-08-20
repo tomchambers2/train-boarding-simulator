@@ -86,10 +86,14 @@ export default class Grid {
     this.added.push(square);
     console.info(JSON.stringify(this.added));
 
-    console.log(location);
+    let c;
+    c = type === 'wall' ? 0x000000 : c;
+    c = type === 'seat' ? 0x00ff00 : c;
+    c = type === 'standing' ? 0x0000ff : c;
+
     const rectangle = this.squares[square[0]][square[1]].rectangle;
     rectangle.lineStyle(0.5, 0x000000, 1);
-    rectangle.beginFill(0x000000);
+    rectangle.beginFill(c);
     rectangle.drawRect(0, 0, this.height, this.width);
     rectangle.endFill();
     // rectangle.x = location.x * this.height;

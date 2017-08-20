@@ -27,5 +27,10 @@ module.exports = {
     ],
   },
   devtool: 'source-map',
-  plugins: [new HtmlWebpackPlugin()],
+  plugins: [
+    new HtmlWebpackPlugin({
+      title: 'Train boarding simulator',
+      template: 'src/index.html',
+    }),
+  ],
 };

@@ -4,11 +4,26 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta http-equiv="X-UA-Compatible" content="ie=edge">
-  <script src="./p5.min.js"></script>
-  <script src="./bundle.js"></script>
   <title>Train simulator</title>
 </head>
 <body>
 
+<div>
+  <div>
+    <button id="new-agent">New agent</button>
+  </div>
+  <div>
+    Type of square:
+    Wall <input id="type-selector-1" type="radio" name="type" value="wall">
+    Standing <input id="type-selector-2" type="radio" name="type" value="standing">
+    Seat <input id="type-selector-3" type="radio" name="type" value="seat">
+  </div>
+  <div>
+    New agent capability: <input id="capability" type="range">
+  </div>
+  <div>
+    Agent search range: <input id="search-range" type="range">
+  </div>
+</div>
 </body>
 </html>

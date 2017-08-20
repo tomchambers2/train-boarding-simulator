@@ -181,8 +181,6 @@ export default class Agent {
         return this.stop();
       }
       if (targets[0].score <= this.highScore) {
-        console.log('existing target higher, use that', this.id);
-
         const destination = this.grid.getSquare(
           this.targetPath[this.targetPath.length - 1]
         );
@@ -197,7 +195,6 @@ export default class Agent {
         this.targetFound = true;
         return;
       }
-      console.log('target', targets[0].score);
       this.targetPath = this.getTargetPath(targets);
       if (this.targetPath.length) {
         // this.target = targets[0];
