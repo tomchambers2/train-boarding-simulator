@@ -35,7 +35,7 @@ export default class Agent {
   canvasHeight: number;
   rectangle: PIXI.Graphics;
   stage: PIXI.Container;
-  maxSearchArea: number;
+  searchRange: number;
   elapsed: number;
   stoppedTime: number;
 
@@ -70,7 +70,6 @@ export default class Agent {
     // this.maxSpeed = 2;
     this.maxForce = 0.2; // 0.2
 
-    this.maxSearchArea = 5;
     this.elapsed = Date.now();
 
     this.arrived = false;
@@ -162,10 +161,10 @@ export default class Agent {
     return path;
   }
 
-  recursiveTargetSearch(currentSquare, maxSearchArea) {
-    const targets = this.findTargetsFrom(currentSquare, maxSearchArea);
+  recursiveTargetSearch(currentSquare, searchRange) {
+    const targets = this.findTargetsFrom(currentSquare, searchRange);
     if (targets.length) return targets;
-    return this.recursiveTargetSearch(currentSquare, maxSearchArea + 1);
+    return this.recursiveTargetSearch(currentSquare, searchRange + 1);
   }
 
   selectTarget() {
@@ -174,7 +173,7 @@ export default class Agent {
     if (!this.targetFound && !this.arrived) {
       const targets = this.recursiveTargetSearch(
         this.currentSquare,
-        this.maxSearchArea
+        this.parameters.searchRange;
       );
       if (!targets[0]) {
         console.log('no target found stop', this.id);
@@ -228,7 +227,7 @@ export default class Agent {
 
       const distance = this.grid.distanceBetween(origin, coords);
       const distanceScore =
-        (1 - distance / (this.maxSearchArea * 2)) * this.parameters.capability; // higher disability, more important distant is
+        (1 - distance / (this.searchRange * 2)) * this.parameters.capability; // higher disability, more important distant is
 
       const nearby = this.grid.agentsNearSquare(coords);
       const nearbyScore = 1 - nearby / 8;

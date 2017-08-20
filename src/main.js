@@ -20,6 +20,8 @@ const spawnPoints = [
 ];
 
 let type = 'wall';
+let capability = 0.5;
+let searchRange = 5;
 
 document.addEventListener(
   'DOMContentLoaded',
@@ -56,6 +58,16 @@ document.addEventListener(
       }
     });
 
+    document.getElementById('capability').defaultValue = capability;
+    document.getElementById('capability').addEventListener('change', evt => {
+      capability = evt.target.value;
+    });
+
+    document.getElementById('search-range').defaultValue = searchRange;
+    document.getElementById('search-range').addEventListener('change', evt => {
+      searchRange = evt.target.value;
+    });
+
     // $FlowFixMe
     document.getElementById('new-agent').addEventListener('click', evt => {
       const pick = Math.ceil(Math.random() * spawnPoints.length) - 1;
@@ -65,7 +77,7 @@ document.addEventListener(
         new Agent(
           ++totalAgents,
           initialPosition,
-          { capability: 0.5 },
+          { capability, searchRange },
           grid,
           stage
         )

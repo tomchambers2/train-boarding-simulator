@@ -81,7 +81,9 @@ export default class Grid {
 
   setFeature(type: string, location: Coords) {
     const square = this.getSquareByPixels(location);
-    this.squares[square[0]][square[1]][type] = true;
+    this.squares[square[0]][square[1]][type] = !this.squares[square[0]][
+      square[1]
+    ][type];
     this.added = this.added || [];
     this.added.push(square);
     console.info(JSON.stringify(this.added));
