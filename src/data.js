@@ -1,6 +1,6 @@
 export default {
   debug: false,
-  squareDimension: 10,
+  squareDimension: 12,
   gridDimensions: {
     width: 100,
     height: 20,

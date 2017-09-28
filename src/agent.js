@@ -173,7 +173,7 @@ export default class Agent {
     if (!this.targetFound && !this.arrived) {
       const targets = this.recursiveTargetSearch(
         this.currentSquare,
-        this.parameters.searchRange;
+        this.parameters.searchRange
       );
       if (!targets[0]) {
         console.log('no target found stop', this.id);

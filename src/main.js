@@ -31,7 +31,7 @@ document.addEventListener(
       data.canvasHeight
     );
     // $FlowFixMe
-    document.body.appendChild(renderer.view);
+    document.getElementById('render').appendChild(renderer.view);
     renderer.backgroundColor = 0xffffff;
     var stage = new PIXI.Container();
 
@@ -43,9 +43,11 @@ document.addEventListener(
     document
       .getElementById('type-selector-1')
       .addEventListener('change', types);
+    // $FlowFixMe
     document
       .getElementById('type-selector-2')
       .addEventListener('change', types);
+    // $FlowFixMe
     document
       .getElementById('type-selector-3')
       .addEventListener('change', types);
