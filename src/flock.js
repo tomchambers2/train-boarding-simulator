@@ -10,4 +10,26 @@ export default class Flock {
   add(agent) {
     this.agents.push(agent);
   }
+  wait() {
+    for (const agent of this.agents) {
+      agent.changeState('wait');
+    }
+  }
+  board() {
+    for (const agent of this.agents) {
+      agent.changeState('board');
+    }
+  }
+  killBoarded() {
+    for (var i = 0; i < this.agents.length; i++) {
+      this.agents.splice(this.agents[i], 1);
+    }
+  }
+  shiftBoarded(distance, time) {
+    for (const agent of this.agents) {
+      if (agent.boarded) {
+        agent.shift(distance, time);
+      }
+    }
+  }
 }

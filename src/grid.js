@@ -93,11 +93,22 @@ export default class Grid {
     c = type === 'seat' ? 0x00ff00 : c;
     c = type === 'standing' ? 0x0000ff : c;
 
-    const rectangle = this.squares[square[0]][square[1]].rectangle;
+    let rectangle;
+    if (this.squares[square[0]][square[1]].rectangle) {
+      rectangle = this.squares[square[0]][square[1]].rectangle;
+    } else {
+      rectangle = new PIXI.Graphics();
+      const lineWidth = this.debug ? 1 : 0;
+      this.squares[square[0]][square[1]].rectangle = rectangle;
+      rectangle.x = square[0] * this.height;
+      rectangle.y = square[1] * this.width;
+    }
     rectangle.lineStyle(0.5, 0x000000, 1);
     rectangle.beginFill(c);
     rectangle.drawRect(0, 0, this.height, this.width);
     rectangle.endFill();
+    this.stage.addChild(rectangle);
+
     // rectangle.x = location.x * this.height;
     // rectangle.y = location.y * this.width;
     // this.stage.addChild(rectangle);
@@ -105,8 +116,8 @@ export default class Grid {
 
   getSquareByPixels([x, y]: Coords) {
     const location = [
-      Math.min(Math.floor(x / this.width), this.gridDimensions.width - 1),
-      Math.min(Math.floor(y / this.height), this.gridDimensions.height - 1),
+      Math.min(Math.floor(x / this.width), this.gridDimensions.width - 1) + 1,
+      Math.min(Math.floor(y / this.height), this.gridDimensions.height - 1) + 1,
     ];
     return location;
   }
@@ -162,8 +173,16 @@ export default class Grid {
     return availableSquares;
   }
 
-  findPath(from: Coords, to: Coords) {
-    this.squares[to[0]][to[1]].rectangle.beginFill(0xc8d953);
+  changeSquareColor(to: Coords) {
+    const lineWidth = this.debug ? 1 : 0;
+    this.squares[to[0]][to[1]].rectangle &&
+      this.squares[to[0]][to[1]].rectangle.clear();
+    if (!this.squares[to[0]][to[1]].rectangle) {
+      this.squares[to[0]][to[1]].rectangle = new PIXI.Graphics();
+      this.stage.addChild(this.squares[to[0]][to[1]].rectangle);
+    }
+    this.squares[to[0]][to[1]].rectangle.lineStyle(lineWidth, 0x000000, 1);
+    this.squares[to[0]][to[1]].rectangle.beginFill(0x00ff00);
     this.squares[to[0]][to[1]].rectangle.drawRect(
       0,
       0,
@@ -171,6 +190,12 @@ export default class Grid {
       this.width
     );
     this.squares[to[0]][to[1]].rectangle.endFill();
+    this.squares[to[0]][to[1]].rectangle.x = to[0] * this.height;
+    this.squares[to[0]][to[1]].rectangle.y = to[1] * this.width;
+  }
+
+  findPath(from: Coords, to: Coords) {
+    this.changeSquareColor(to);
 
     const open = [from];
     const closed = [];
@@ -182,6 +207,7 @@ export default class Grid {
       // TODO A* - add heuristic here to find next best path
       // const currentSquare = open.sort((a, b) => a.score - b.score).shift();
       const currentSquare = open.shift();
+      this.changeSquareColor(currentSquare);
       closed.push(currentSquare);
       if (closed.some(other => this.coordsMatch(to, other))) {
         let prev = closed.pop();
@@ -231,26 +257,29 @@ export default class Grid {
   }
 
   create(stage: PIXI.Container) {
+    if (!this.debug) return;
+    this.stage = stage;
     this.squares.forEach((row, i) => {
       row.forEach((square, j) => {
-        let c = 0xffffff;
+        let c = 0x000000;
         c = square.wall ? 0x000000 : c;
         c = square.seat ? 0x00ff00 : c;
         c = square.standing ? 0x0000ff : c;
         // c = square.path && this.debug ? 0xff0000 : c;
         // c = square.occupied && this.debug ? 0x000000 : c;
 
-        const rectangle = new PIXI.Graphics();
-        const lineWidth = this.debug ? 1 : 0;
-        rectangle.lineStyle(lineWidth, 0x000000, 1);
-        rectangle.beginFill(c);
-        rectangle.drawRect(0, 0, this.height, this.width);
-        rectangle.endFill();
-        rectangle.x = i * this.height;
-        rectangle.y = j * this.width;
-        stage.addChild(rectangle);
-
-        this.squares[i][j].rectangle = rectangle;
+        if (square.wall || square.seat || square.standing) {
+          const rectangle = new PIXI.Graphics();
+          const lineWidth = this.debug ? 1 : 0;
+          rectangle.lineStyle(lineWidth, 0x000000, 1);
+          rectangle.beginFill(c);
+          rectangle.drawRect(0, 0, this.height, this.width);
+          rectangle.endFill();
+          rectangle.x = i * this.height;
+          rectangle.y = j * this.width;
+          stage.addChild(rectangle);
+          this.squares[i][j].rectangle = rectangle;
+        }
 
         this.squares[i][j].message = new PIXI.Text(null, {
           fontFamily: 'Arial',

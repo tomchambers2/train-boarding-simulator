@@ -70,6 +70,12 @@ export default class Agent {
     // this.maxSpeed = 2;
     this.maxForce = 0.2; // 0.2
 
+    this.movement = {
+      timeStep: 16,
+      totalDistance: 0,
+      moveStep: 0,
+    };
+
     this.elapsed = Date.now();
 
     this.arrived = false;
@@ -103,6 +109,33 @@ export default class Agent {
     }
   }
 
+  changeState(newState) {
+    switch (newState) {
+      case 'wait':
+        this.state = 'wait';
+        this.arrived = false;
+        break;
+      case 'board':
+        this.state = 'board';
+        this.arrived = false;
+        break;
+    }
+  }
+
+  shift(distance, time) {
+    this.totalDistance = distance;
+    this.movedDistance = 0;
+
+    this.moveStep = distance / time * this.timeStep;
+    this.shiftStep(this.moveStep, timeStep);
+  }
+
+  shiftStep() {
+    this.x += moveStep;
+    this.movedDistance += this.moveStep;
+    setTimeout(this.shiftStep.bind(this), this.timeStep);
+  }
+
   run(agents: Array<Agent>) {
     this.incrementTimer();
     if (this.dead) return;
@@ -113,6 +146,23 @@ export default class Agent {
     this.borders();
 
     this.updateGridLocation();
+    // TODO reinstate selection logic
+    // if (this.state === 'wait') {
+    //   // if on train, do not move. If not on train, go to set wait point
+    //   if (this.boarded) {
+    //     // this.target = null;
+    //   } else {
+    //     this.target = this.grid.getSquareLocation(data.setPoints.wait);
+    //   }
+    // } else {
+    //   // board
+    //   // if on train, go to set exit point. If not on train, selectTarget
+    //   if (this.boarded) {
+    //     this.target = this.grid.getSquareLocation(data.setPoints.exit);
+    //   } else {
+    //     this.selectTarget();
+    //   }
+    // }
     this.selectTarget();
 
     this.render();
@@ -211,6 +261,11 @@ export default class Agent {
     if (this.grid.coordsMatch(this.targetPath[0], this.currentSquare)) {
       this.targetPath.shift();
       if (!this.targetPath.length) this.arrived = true;
+      const squareInfo = this.grid.getSquare(this.currentSquare);
+      if (squareInfo.seat || squareInfo.standing) {
+        this.boarded = true;
+        console.log('did board');
+      }
       return;
     }
 

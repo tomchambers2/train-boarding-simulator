@@ -6,23 +6,24 @@
   <meta http-equiv="X-UA-Compatible" content="ie=edge">
   <title>Train simulator</title>
   <style>
+  html, body {
+    padding: 0;
+    margin: 0;
+  }
   .debug {
     position: absolute;
-    top: 0;
     right: 0;
+    bottom: 0;
     border: 1px dashed brown;
+    z-index: 10;
+    background: white;
   }
   svg {
     position: absolute;
+    z-index: -1;
   }
-  #moving-parts {
-    margin-left: 300px;
-    position: relative;
-    left: 300px;
-    top: 200px;
-  }
-  .train1 {
-    fill: red;
+  .moving-parts {
+    /*right: -100%;*/
   }
   </style>
 </head>
@@ -31,6 +32,7 @@
 <div class="debug">
   <div>
     <button id="new-agent">New agent</button>
+    <button class="debug-toggle">Toggle debug view</button>
   </div>
   <div>
     Type of square:
@@ -49,36 +51,39 @@
 <div id="render">
   <svg width="3000" height="200">
       <symbol id="two-seats">
-        <circle cx="10" cy="10" r="8" fill="#194B9E"></circle>
-        <circle cx="10" cy="30" r="8" fill="#194B9E"></circle>
+        <circle cx="5" cy="5" r="5" fill="#194B9E"></circle>
+        <circle cx="5" cy="15" r="5" fill="#194B9E"></circle>
       </symbol>
       <symbol id="four-seats">
         <use href="#two-seats" />
-        <use href="#two-seats" x="40" />
+        <use href="#two-seats" x="20" />
       </symbol>
       <symbol id="seat-block">
         <use href="#four-seats"></use>
-        <use href="#four-seats" y="50"></use>
+        <use href="#four-seats" y="30"></use>
       </symbol>
       <symbol id="train">
-        <rect x="5" y="5" width="485" height="102" fill="white"></rect>
-        <path fill="none" stroke="black" stroke-width="5" d="m5,5 h485 v100 h-210 m-65,0 h-210 v-102"/>
+        <rect x="0" y="0" width="350" height="70" fill="red"></rect>
+        <path fill="none" stroke="black" stroke-width="5" d="m0,2.5 h350 v65 h-160 m-30,0 h-157.5 v-65"/>
         <use href="#seat-block" x="10" y="10" />
-        <use href="#seat-block" x="80" y="10" />
-        <use href="#seat-block" x="150" y="10" />
+        <use href="#seat-block" x="40" y="10" />
+        <use href="#seat-block" x="70" y="10" />
+        <use href="#seat-block" x="100" y="10" />
+        <use href="#seat-block" x="130" y="10" />
 
+        <use href="#seat-block" x="190" y="10" />
+        <use href="#seat-block" x="220" y="10" />
+        <use href="#seat-block" x="250" y="10" />
         <use href="#seat-block" x="280" y="10" />
-        <use href="#seat-block" x="350" y="10" />
-        <use href="#seat-block" x="420" y="10" />
+        <use href="#seat-block" x="310" y="10" />
       </symbol>
 
       <symbol id="connector">
-        <symbol id="box"><rect x="0" y="10" width="10" fill="white" height="90" stroke="black" stroke-width="3"></rect></symbol>
-
+        <symbol id="box"><rect x="0" y="5" width="5" fill="white" height="60" stroke="black" stroke-width="3"></rect></symbol>
         <use href="#box"></use>
+        <use href="#box" x="5"></use>
         <use href="#box" x="10"></use>
-        <use href="#box" x="20"></use>
-        <use href="#box" x="30"></use>
+        <use href="#box" x="15"></use>
       </symbol>
 
       <symbol id="rails">
@@ -88,18 +93,17 @@
 
 
     </svg>
-    <svg class="static-parts" width="100%">
+    <!-- <svg class="static-parts" width="100%">
       <use href="#rails"></use>
       <g id="platform">
         <path d="m0,115 h2000" stroke="black" stroke-width="3"></path>
         <path d="m0,125 h2000" stroke="#FFFF80" stroke-width="6"></path>
-
       </g>
-    </svg>
+    </svg> -->
     <svg class="moving-parts" width="100%">
-      <use class="train1" href="#train"></use>
-      <use href="#connector" x="490"></use>
-      <use href="#train" x="525"></use>
+      <use class="train1" href="#train" x="10" y="10"></use>
+      <use href="#train" x="380" y="10"></use>
+      <use href="#connector" x="360" y="10"></use>
     </svg>
 </div>
 </body>

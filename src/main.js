@@ -1,6 +1,9 @@
 // @flow
 
 import * as PIXI from 'pixi.js';
+import $ from 'jquery';
+
+let debug = true;
 
 import Flock from './flock';
 import Grid from './grid';
@@ -13,31 +16,64 @@ const startingAgents = 0;
 
 let totalAgents = startingAgents;
 
-const spawnPoints = [
-  new Vector(166, 100),
-  new Vector(445, 94),
-  new Vector(714, 105),
-];
+const spawnPoints = [new Vector(180, 80), new Vector(550, 80)];
 
 let type = 'wall';
 let capability = 0.5;
 let searchRange = 5;
 
+let stage = 0;
+
+const startTimer = () => {
+  setTimeout(startTimer, data.stages[stage]);
+  switch (stage) {
+    case 0:
+      console.log('train enters - agents go to platform/stay on train');
+      // loop over agents and set all to 'wait at [[x,x],[x,x]]' for places on platform
+      flock.shiftBoarded('-100%', 4000);
+      $('.moving-parts').css({ right: '-100%' });
+      $('.moving-parts').animate({ right: 0 }, 4000);
+      break;
+    case 1:
+      console.log('train boarding - agents to find seat/leave to exit point');
+      flock.board();
+      break;
+    case 2:
+      console.log('train leaving - agents to go to platform/stay on train');
+      flock.wait();
+      flock.shiftBoarded('-100%', 4000);
+      $('.moving-parts').animate({ right: '100%' }, 4000, () => {
+        flock.killBoarded();
+        flock.shiftBoarded('200', 0);
+      });
+      break;
+  }
+  stage = (stage + 1) % 3;
+};
+
 document.addEventListener(
   'DOMContentLoaded',
   () => {
+    startTimer();
+
     const renderer = PIXI.autoDetectRenderer(
       data.canvasWidth,
-      data.canvasHeight
+      data.canvasHeight,
+      { transparent: true }
     );
     // $FlowFixMe
     document.getElementById('render').appendChild(renderer.view);
-    renderer.backgroundColor = 0xffffff;
+    // renderer.backgroundColor = 0xffffff;
     var stage = new PIXI.Container();
 
     const types = evt => {
       type = evt.target.value;
     };
+
+    $('.debug-toggle').click(() => {
+      console.log('toggle debug');
+      debug = !debug;
+    });
 
     // $FlowFixMe
     document
