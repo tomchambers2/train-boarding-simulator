@@ -173,6 +173,24 @@ export default class Grid {
     return availableSquares;
   }
 
+  run() {
+    this.squares.forEach((row, i) => {
+      row.forEach((square, j) => {
+        if (this.squares[i][j].nextColor) {
+          this.changeSquareColor([i, j]);
+          if (
+            this.squares[i][j].nextColor !== this.squares[i][j].initialColor
+          ) {
+            this.squares[i][j].nextColor =
+              this.squares[i][j].initialColor || 0x000000;
+          } else {
+            this.squares[i][j].nextColor = null;
+          }
+        }
+      });
+    });
+  }
+
   changeSquareColor(to: Coords) {
     const lineWidth = this.debug ? 1 : 0;
     this.squares[to[0]][to[1]].rectangle &&
@@ -195,7 +213,7 @@ export default class Grid {
   }
 
   findPath(from: Coords, to: Coords) {
-    this.changeSquareColor(to);
+    this.squares[to[0]][to[1]].nextColor = 0xeeff0c;
 
     const open = [from];
     const closed = [];
@@ -208,6 +226,7 @@ export default class Grid {
       // const currentSquare = open.sort((a, b) => a.score - b.score).shift();
       const currentSquare = open.shift();
       this.changeSquareColor(currentSquare);
+      this.squares[currentSquare[0]][currentSquare[1]].nextColor = 0x00ff00;
       closed.push(currentSquare);
       if (closed.some(other => this.coordsMatch(to, other))) {
         let prev = closed.pop();
@@ -273,6 +292,7 @@ export default class Grid {
           const lineWidth = this.debug ? 1 : 0;
           rectangle.lineStyle(lineWidth, 0x000000, 1);
           rectangle.beginFill(c);
+          rectangle.initialColor = c;
           rectangle.drawRect(0, 0, this.height, this.width);
           rectangle.endFill();
           rectangle.x = i * this.height;

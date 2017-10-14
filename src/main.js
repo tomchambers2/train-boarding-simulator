@@ -143,6 +143,7 @@ document.addEventListener(
     const draw = () => {
       requestAnimationFrame(draw);
       flock.run();
+      grid.run();
       renderer.render(stage);
     };
 
