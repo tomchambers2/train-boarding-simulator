@@ -16,7 +16,8 @@ const startingAgents = 0;
 
 let totalAgents = startingAgents;
 
-const spawnPoints = [new Vector(180, 80), new Vector(550, 80)];
+const spawnPoints = [new Vector(100, 30), new Vector(400, 30)];
+// const spawnPoints = [new Vector(180, 80), new Vector(550, 80)];
 
 let type = 'wall';
 let capability = 0.5;
@@ -28,18 +29,14 @@ const startTimer = () => {
   setTimeout(startTimer, data.stages[stage]);
   switch (stage) {
     case 0:
-      console.log('train enters - agents go to platform/stay on train');
-      // loop over agents and set all to 'wait at [[x,x],[x,x]]' for places on platform
       flock.shiftBoarded('-100%', 4000);
       $('.moving-parts').css({ right: '-100%' });
       $('.moving-parts').animate({ right: 0 }, 4000);
       break;
     case 1:
-      console.log('train boarding - agents to find seat/leave to exit point');
       flock.board();
       break;
     case 2:
-      console.log('train leaving - agents to go to platform/stay on train');
       flock.wait();
       flock.shiftBoarded('-100%', 4000);
       $('.moving-parts').animate({ right: '100%' }, 4000, () => {
@@ -49,6 +46,23 @@ const startTimer = () => {
       break;
   }
   stage = (stage + 1) % 3;
+};
+
+const formatVector = (vector: Vector) => {
+  return `${vector.x}, ${vector.y}`;
+};
+
+const updateDebugger = () => {
+  const debugAgent = flock.get(0);
+  if (!debugAgent) return;
+  $('.dead').html(debugAgent.dead);
+  $('.boarded').html(debugAgent.boarded);
+  $('.arrived').html(debugAgent.arrived);
+  $('.id').html(debugAgent.id);
+  $('.position').html(formatVector(debugAgent.position));
+  $('.target').html(formatVector(debugAgent.target));
+  $('.target-path').html(JSON.stringify(debugAgent.targetPath));
+  $('.current-square').html(JSON.stringify(debugAgent.currentSquare));
 };
 
 document.addEventListener(
@@ -124,30 +138,31 @@ document.addEventListener(
 
     const grid = new Grid(data, stage);
 
-    const createAgents = () => {
-      grid.create(stage);
-
-      for (var i = 0; i < startingAgents; i++) {
-        flock.add(
-          new Agent(
-            i + 1,
-            grid.getSquareLocation([16, 11]),
-            { capability: Math.random() },
-            grid,
-            stage
-          )
-        );
-      }
-    };
+    // const createAgents = () => {
+    //   grid.create(stage);
+    //
+    //   for (var i = 0; i < startingAgents; i++) {
+    //     flock.add(
+    //       new Agent(
+    //         i + 1,
+    //         grid.getSquareLocation([16, 11]),
+    //         { capability: Math.random() },
+    //         grid,
+    //         stage
+    //       )
+    //     );
+    //   }
+    // };
 
     const draw = () => {
       requestAnimationFrame(draw);
       flock.run();
       grid.run();
+      updateDebugger();
       renderer.render(stage);
     };
 
-    createAgents();
+    // createAgents();
 
     requestAnimationFrame(draw);
   },

@@ -10,6 +10,9 @@ export default class Flock {
   add(agent) {
     this.agents.push(agent);
   }
+  get(agentIndex) {
+    return this.agents[0];
+  }
   wait() {
     for (const agent of this.agents) {
       agent.changeState('wait');
@@ -21,15 +24,15 @@ export default class Flock {
     }
   }
   killBoarded() {
-    for (var i = 0; i < this.agents.length; i++) {
-      this.agents.splice(this.agents[i], 1);
-    }
+    // for (var i = 0; i < this.agents.length; i++) {
+    //   this.agents.splice(this.agents[i], 1);
+    // }
   }
   shiftBoarded(distance, time) {
-    for (const agent of this.agents) {
-      if (agent.boarded) {
-        agent.shift(distance, time);
-      }
-    }
+    // for (const agent of this.agents) {
+    //   if (agent.boarded) {
+    //     agent.shift(distance, time);
+    //   }
+    // }
   }
 }

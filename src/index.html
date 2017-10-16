@@ -12,6 +12,7 @@
   }
   .debug {
     position: absolute;
+    width: 100%;
     right: 0;
     bottom: 0;
     border: 1px dashed brown;
@@ -46,6 +47,41 @@
   <div>
     Agent search range: <input id="search-range" type="range" min="1" max="12">
   </div>
+  <hr>
+  <table class="debug-agent">
+    <tr>
+      <td>Dead</td>
+      <td class="dead"></td>
+    </tr>
+    <tr>
+      <td>Boarded</td>
+      <td class="boarded"></td>
+    </tr>
+    <tr>
+      <td>Arrived</td>
+      <td class="arrived"></td>
+    </tr>
+    <tr>
+      <td>Id</td>
+      <td class="id"></td>
+    </tr>
+    <tr>
+      <td>Position</td>
+      <td class="position"></td>
+    </tr>
+    <tr>
+      <td>Target</td>
+      <td class="target"></td>
+    </tr>
+    <tr>
+      <td>Target path</td>
+      <td class="target-path"></td>
+    </tr>
+    <tr>
+      <td>Current square</td>
+      <td class="current-square"></td>
+    </tr>
+  </table>
 </div>
 
 <div id="render">

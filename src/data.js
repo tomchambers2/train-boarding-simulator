@@ -1,5 +1,5 @@
 export default {
-  debug: true,
+  debug: false,
   squareDimension: 10,
   gridDimensions: {
     width: 100,

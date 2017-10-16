@@ -20,7 +20,7 @@ export default class Agent {
   radius: number;
   maxSpeed: number;
   maxForce: number;
-  arrived: boolean;
+  reachedEndOfPath: boolean;
   dead: boolean;
   color: number;
   position: Vector;
@@ -78,7 +78,7 @@ export default class Agent {
 
     this.elapsed = Date.now();
 
-    this.arrived = false;
+    this.reachedEndOfPath = false;
 
     this.createDrawing(stage);
   }
@@ -87,8 +87,8 @@ export default class Agent {
     this.color = random(200, 255);
 
     this.rectangle = new PIXI.Graphics();
-    this.rectangle.lineStyle(4, 0xff3300, 1);
-    this.rectangle.beginFill(0x66ccff);
+    this.rectangle.lineStyle(4, 0x00ff00, 1);
+    this.rectangle.beginFill(0x00ff00);
     this.rectangle.drawRect(0, 0, this.radius, this.radius);
     this.rectangle.endFill();
     this.rectangle.x = this.position.x;
@@ -103,23 +103,24 @@ export default class Agent {
 
   incrementTimer() {
     this.elapsed = Date.now();
+    return;
     if (this.elapsed - this.stoppedTime > PAUSE_TIME) {
-      this.targetFound = false;
+      this.destinationFound = false;
       this.dead = false;
     }
   }
 
   changeState(newState) {
-    switch (newState) {
-      case 'wait':
-        this.state = 'wait';
-        this.arrived = false;
-        break;
-      case 'board':
-        this.state = 'board';
-        this.arrived = false;
-        break;
-    }
+    // switch (newState) {
+    //   case 'wait':
+    //     this.state = 'wait';
+    //     this.reachedEndOfPath = false;
+    //     break;
+    //   case 'board':
+    //     this.state = 'board';
+    //     this.reachedEndOfPath = false;
+    //     break;
+    // }
   }
 
   shift(distance, time) {
@@ -138,14 +139,30 @@ export default class Agent {
 
   run(agents: Array<Agent>) {
     this.incrementTimer();
+
     if (this.dead) return;
 
-    this.flock(agents);
-    this.moveAgent();
-    this.seekTarget();
-    this.borders();
+    const separation = this.separate(agents);
+    separation.mult(1.5);
+    this.acceleration.add(separation);
 
-    this.updateGridLocation();
+    const direction = this.seek(this.target);
+    this.acceleration.add(direction);
+
+    this.velocity.add(this.acceleration);
+    this.velocity.limit(this.maxSpeed);
+    this.velocity = this.arrive(this.velocity); // couldnt match square, too far away
+    this.position.add(this.velocity);
+    this.acceleration.mult(0);
+
+    if (this.currentSquare)
+      this.grid.updateSquare(this.currentSquare, false, this.id);
+    this.currentSquare = this.grid.getSquareByPixels([
+      this.position.x,
+      this.position.y,
+    ]);
+    this.grid.updateSquare(this.currentSquare, true, this.id);
+
     // TODO reinstate selection logic
     // if (this.state === 'wait') {
     //   // if on train, do not move. If not on train, go to set wait point
@@ -163,31 +180,67 @@ export default class Agent {
     //     this.selectTarget();
     //   }
     // }
-    this.selectTarget();
 
     this.render();
-  }
 
-  seekTarget() {
-    this.applyForce(this.seek(this.target));
-  }
+    if (this.reachedEndOfPath) {
+      console.log('agent has reachedEndOfPath');
+      return;
+    }
 
-  moveAgent() {
-    this.velocity.add(this.acceleration);
-    this.velocity.limit(this.maxSpeed);
-    this.velocity = this.arrive(this.velocity); // couldnt match square, too far away
-    this.position.add(this.velocity);
-    this.acceleration.mult(0);
-  }
+    if (!this.destinationFound && !this.reachedEndOfPath) {
+      // no destination found. not reachedEndOfPath at end of path
+      console.log('not there yet');
+      const targets = this.recursiveTargetSearch(
+        this.currentSquare,
+        this.parameters.searchRange
+      );
+      if (!targets[0]) {
+        console.log('no target found stop', this.id);
+        return this.stop();
+      }
+      if (targets[0].score <= this.highScore) {
+        const destination = this.grid.getSquare(
+          this.targetPath[this.targetPath.length - 1]
+        );
 
-  updateGridLocation() {
-    if (this.currentSquare)
-      this.grid.updateSquare(this.currentSquare, false, this.id);
-    this.currentSquare = this.grid.getSquareByPixels([
-      this.position.x,
-      this.position.y,
-    ]);
-    this.grid.updateSquare(this.currentSquare, true, this.id);
+        if (destination.occupied && destination.occupier !== this.id) {
+          console.log('destination is occupied!');
+          this.highScore = 0;
+          this.destinationFound = false;
+          return;
+        }
+
+        this.stoppedTime = Date.now();
+        this.destinationFound = true;
+        return;
+      }
+      this.targetPath = this.getTargetPath(targets);
+      if (this.targetPath.length) {
+        this.highScore = targets[0].score;
+        this.stoppedTime = Date.now();
+        this.destinationFound = true;
+      }
+      return;
+    }
+
+    if (this.grid.coordsMatch(this.targetPath[0], this.currentSquare)) {
+      console.log(
+        this.targetPath[0],
+        this.currentSquare,
+        'MATCH! remove target from start of path'
+      );
+      this.targetPath.shift();
+      if (!this.targetPath.length) this.reachedEndOfPath = true;
+      const squareInfo = this.grid.getSquare(this.currentSquare);
+      if (squareInfo.seat || squareInfo.standing) {
+        this.boarded = true;
+        console.log('did board');
+      }
+      return;
+    }
+
+    this.target = this.grid.getSquareLocation(this.targetPath[0]);
   }
 
   stop() {
@@ -215,61 +268,6 @@ export default class Agent {
     const targets = this.findTargetsFrom(currentSquare, searchRange);
     if (targets.length) return targets;
     return this.recursiveTargetSearch(currentSquare, searchRange + 1);
-  }
-
-  selectTarget() {
-    if (this.arrived) return;
-
-    if (!this.targetFound && !this.arrived) {
-      const targets = this.recursiveTargetSearch(
-        this.currentSquare,
-        this.parameters.searchRange
-      );
-      if (!targets[0]) {
-        console.log('no target found stop', this.id);
-        return this.stop();
-      }
-      if (targets[0].score <= this.highScore) {
-        const destination = this.grid.getSquare(
-          this.targetPath[this.targetPath.length - 1]
-        );
-        if (destination.occupied && destination.occupier !== this.id) {
-          console.log('desintation is occupied!');
-          this.highScore = 0;
-          this.targetFound = false;
-          return;
-        }
-
-        this.stoppedTime = Date.now();
-        this.targetFound = true;
-        return;
-      }
-      this.targetPath = this.getTargetPath(targets);
-      if (this.targetPath.length) {
-        // this.target = targets[0];
-        this.highScore = targets[0].score;
-        this.stoppedTime = Date.now();
-        this.targetFound = true;
-      }
-      return;
-    }
-
-    // FIXME use this in case user turns off find new path every second
-    if (this.targetPath.length) {
-    }
-
-    if (this.grid.coordsMatch(this.targetPath[0], this.currentSquare)) {
-      this.targetPath.shift();
-      if (!this.targetPath.length) this.arrived = true;
-      const squareInfo = this.grid.getSquare(this.currentSquare);
-      if (squareInfo.seat || squareInfo.standing) {
-        this.boarded = true;
-        console.log('did board');
-      }
-      return;
-    }
-
-    this.target = this.grid.getSquareLocation(this.targetPath[0]);
   }
 
   rand(max: number) {
@@ -311,10 +309,6 @@ export default class Agent {
     return this.grid.findPath(from, to);
   }
 
-  applyForce(force: Vector) {
-    this.acceleration.add(force);
-  }
-
   seek(target: Coords) {
     const desired = Vector.sub(target, this.position);
     desired.normalize();
@@ -337,29 +331,6 @@ export default class Agent {
       return desired;
     }
     return velocity;
-  }
-
-  flock(agents: Array<Agent>) {
-    const separation = this.separate(agents);
-    separation.mult(1.5);
-    this.applyForce(separation);
-    // const alignment = this.align(agents);
-    // alignment.mult(1);
-    // this.applyForce(alignment);
-    // const cohesion = this.cohesion(agents);
-    // cohesion.mult(1);
-    // this.applyForce(cohesion);
-  }
-
-  borders() {
-    if (this.position.x < -this.radius)
-      this.position.x = this.canvasWidth + this.radius;
-    if (this.position.y < -this.radius)
-      this.position.y = this.canvasHeight + this.radius;
-    if (this.position.x > this.canvasWidth + this.radius)
-      this.position.x = -this.radius;
-    if (this.position.y > this.canvasHeight + this.radius)
-      this.position.y = -this.radius;
   }
 
   render() {
@@ -391,47 +362,5 @@ export default class Agent {
       steer.limit(this.maxForce);
     }
     return steer;
-  }
-
-  align(agents: Array<Agent>) {
-    const neighborDist = 50;
-    const sum = new Vector(0, 0);
-    let count = 0;
-    for (const other of agents) {
-      const distance = Vector.dist(this.position, other.position);
-      if (distance > 0 && distance < neighborDist) {
-        sum.add(other.velocity);
-        count++;
-      }
-    }
-    if (count > 0) {
-      sum.div(count);
-      sum.normalize();
-      sum.mult(this.maxSpeed);
-      const steer = Vector.sub(sum, this.velocity);
-      steer.limit(this.maxForce);
-      return steer;
-    } else {
-      return new Vector(0, 0);
-    }
-  }
-
-  cohesion(agents: Array<Agent>) {
-    const neighborDist = 50;
-    const sum = new Vector(0, 0);
-    let count = 0;
-    for (const other of agents) {
-      const distance = Vector.dist(this.position, other.position);
-      if (distance > 0 && distance < neighborDist) {
-        sum.add(other.position);
-        count++;
-      }
-    }
-    if (count > 0) {
-      sum.div(count);
-      return this.seek(sum);
-    } else {
-      return new Vector(0, 0);
-    }
   }
 }
