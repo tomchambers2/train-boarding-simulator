@@ -28,21 +28,24 @@ let stage = 0;
 const startTimer = () => {
   setTimeout(startTimer, data.stages[stage]);
   switch (stage) {
-    case 0:
-      flock.shiftBoarded('-100%', 4000);
-      $('.moving-parts').css({ right: '-100%' });
-      $('.moving-parts').animate({ right: 0 }, 4000);
+    case 0: // leaving
+      console.log('TRAIN LEAVING');
+      // flock.shiftBoarded(-100, 1000);
+      // $('.moving-parts').css({ right: '-100%' });
+      // $('.moving-parts').animate({ right: 0 }, 1000);
       break;
-    case 1:
+    case 1: // waiting
+      console.log('TRAIN WAITING');
       flock.board();
       break;
-    case 2:
+    case 2: // arriving
+      console.log('TRAIN ARRIVING');
       flock.wait();
-      flock.shiftBoarded('-100%', 4000);
-      $('.moving-parts').animate({ right: '100%' }, 4000, () => {
-        flock.killBoarded();
-        flock.shiftBoarded('200', 0);
-      });
+      flock.shiftBoarded(300, 1000);
+      // $('.moving-parts').animate({ right: '100%' }, 1000, () => {
+      //   flock.killBoarded();
+      //   // flock.shiftBoarded(200, 1);
+      // });
       break;
   }
   stage = (stage + 1) % 3;
@@ -52,17 +55,26 @@ const formatVector = (vector: Vector) => {
   return `${vector.x}, ${vector.y}`;
 };
 
+const trainState = {
+  'stage-0': 'leaving',
+  'stage-1': 'waiting',
+  'stage-2': 'arriving',
+};
+
 const updateDebugger = () => {
   const debugAgent = flock.get(0);
   if (!debugAgent) return;
   $('.dead').html(debugAgent.dead);
   $('.boarded').html(debugAgent.boarded);
   $('.arrived').html(debugAgent.arrived);
+  $('.draw-offset-x').html(debugAgent.drawOffsetX);
   $('.id').html(debugAgent.id);
   $('.position').html(formatVector(debugAgent.position));
   $('.target').html(formatVector(debugAgent.target));
   $('.target-path').html(JSON.stringify(debugAgent.targetPath));
   $('.current-square').html(JSON.stringify(debugAgent.currentSquare));
+
+  $('.train-state').html(trainState[`stage-${stage}`]);
 };
 
 document.addEventListener(
@@ -77,7 +89,6 @@ document.addEventListener(
     );
     // $FlowFixMe
     document.getElementById('render').appendChild(renderer.view);
-    // renderer.backgroundColor = 0xffffff;
     var stage = new PIXI.Container();
 
     const types = evt => {

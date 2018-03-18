@@ -63,6 +63,8 @@ export default class Agent {
     this.canvasWidth = data.canvasWidth;
     this.canvasHeight = data.canvasHeight;
 
+    this.drawOffsetX = 0;
+
     this.acceleration = new Vector(0, 0);
     this.velocity = new Vector(random(-1, 1), random(-1, 1));
     this.radius = 3;
@@ -103,7 +105,6 @@ export default class Agent {
 
   incrementTimer() {
     this.elapsed = Date.now();
-    return;
     if (this.elapsed - this.stoppedTime > PAUSE_TIME) {
       this.destinationFound = false;
       this.dead = false;
@@ -124,17 +125,25 @@ export default class Agent {
   }
 
   shift(distance, time) {
-    this.totalDistance = distance;
-    this.movedDistance = 0;
+    this.movement.totalDistance = distance;
+    this.movement.movedDistance = 0;
 
-    this.moveStep = distance / time * this.timeStep;
-    this.shiftStep(this.moveStep, timeStep);
+    const moveStep = distance / time * this.movement.timeStep;
+    clearTimeout(this.movement.shiftTimer);
+    this.shiftStep(moveStep)();
   }
 
-  shiftStep() {
-    this.x += moveStep;
-    this.movedDistance += this.moveStep;
-    setTimeout(this.shiftStep.bind(this), this.timeStep);
+  shiftStep(moveStep) {
+    return () => {
+      this.drawOffsetX += moveStep;
+      this.movement.movedDistance += moveStep;
+      if (this.movement.movedDistance <= this.movement.totalDistance) {
+        this.movement.shiftTimer = setTimeout(
+          this.shiftStep.bind(this)(moveStep),
+          this.movement.timeStep
+        );
+      }
+    };
   }
 
   run(agents: Array<Agent>) {
@@ -184,7 +193,6 @@ export default class Agent {
     this.render();
 
     if (this.reachedEndOfPath) {
-      console.log('agent has reachedEndOfPath');
       return;
     }
 
@@ -334,7 +342,7 @@ export default class Agent {
   }
 
   render() {
-    this.rectangle.x = this.position.x;
+    this.rectangle.x = this.position.x + this.drawOffsetX;
     this.rectangle.y = this.position.y;
   }
 

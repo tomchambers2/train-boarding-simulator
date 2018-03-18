@@ -9,7 +9,7 @@ export default {
     wait: [16, 11],
     exit: [51, 50],
   },
-  stages: [8000, 8000, 8000],
+  stages: [3000, 3000, 3000],
   canvasWidth: 1000,
   canvasHeight: 300,
   walls: [

@@ -29,10 +29,11 @@ export default class Flock {
     // }
   }
   shiftBoarded(distance, time) {
-    // for (const agent of this.agents) {
-    //   if (agent.boarded) {
-    //     agent.shift(distance, time);
-    //   }
-    // }
+    for (const agent of this.agents) {
+      console.log('shift', agent);
+      if (agent.boarded) {
+        agent.shift(distance, time);
+      }
+    }
   }
 }
